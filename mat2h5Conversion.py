@@ -2,116 +2,100 @@ import h5py
 from config import *
 from scipy import signal
 
-def spectrogram_per_channel(g, s_list):
+def spectrogram_per_channel(g):
     channels = []
-#    random.shuffle(s_list)
-    for j in s_list:
+    for j in range(n_channels):
         f, t, Sxx = signal.stft(g[:, j], fs=2000, nperseg=1000, noverlap=950)
         channels.append(np.abs(Sxx[:250,:]))
     return np.array(channels)
 
-n_samples_train = n_subjects*len(train_trials)*((n_timepoints-window_len)/window_inc+1)
-n_samples_valid = n_subjects*len(valid_trials)*((n_timepoints-window_len)/window_inc+1)
-n_samples_test  = n_subjects*len(test_trials) *((n_timepoints-window_len)/window_inc+1)
+n_samples_train = len(train_subjects)*n_windows*n_trial
+n_samples_valid = len(valid_subjects)*n_windows*n_trial
+n_samples_test  = len(test_subjects) *n_windows*n_trial
 
-train_shape = (n_samples_train, n_channels, 250, 25)
-valid_shape = (n_samples_valid, n_channels, 250, 25)
-test_shape  = (n_samples_test,  n_channels, 250, 25)
+train_shape = (n_samples_train, n_channels, 250, 21)
+valid_shape = (n_samples_valid, n_channels, 250, 21)
+test_shape  = (n_samples_test,  n_channels, 250, 21)
 
 f_train = h5py.File(file_path+'train_2d.h5', "w")
 f_train.create_dataset("data", train_shape)
-f_train.create_dataset("labels", (n_samples_train,))
-f_train.create_dataset("moves", (n_samples_train,))
-f_train.create_dataset("reps", (n_samples_train,))
+f_train.create_dataset("label", (n_samples_train,))
+f_train.create_dataset("subject", (n_samples_train,))
+f_train.create_dataset("trial", (n_samples_train,))
 
 f_test = h5py.File(file_path+'test_2d.h5', "w")
 f_test.create_dataset("data", test_shape)
-f_test.create_dataset("labels", (n_samples_test,))
-f_test.create_dataset("moves", (n_samples_test,))
-f_test.create_dataset("reps", (n_samples_test,))
+f_test.create_dataset("label", (n_samples_test,))
+f_test.create_dataset("subject", (n_samples_test,))
+f_test.create_dataset("trial", (n_samples_test,))
 
 
 f_valid = h5py.File(file_path+'valid_2d.h5', "w")
 f_valid.create_dataset("data", valid_shape)
-f_valid.create_dataset("labels", (n_samples_valid,))
-f_valid.create_dataset("moves", (n_samples_valid,))
-f_valid.create_dataset("reps", (n_samples_valid,))
+f_valid.create_dataset("label", (n_samples_valid,))
+f_valid.create_dataset("subject", (n_samples_valid,))
+f_valid.create_dataset("trial", (n_samples_valid,))
 
 u = 0
 s = 0    # sth sample in test set
 v = 0    # vth sample in validation set
 
 path = file_path + "SF_Obs_MLdata.mat"
+
 f = h5py.File(path,'r')
-data = f.get('data')
-data = np.array(data)
-print(data)
-exit(0)
 
-train_emg = []
-for subject in range(1,n_subjects):
-    print('subject#:', subject)
-    
-    emg = data_dict['emg']
-    emg = apply_mu(emg)
-    for j in (train_moves):
-        for i in train_reps:
-            idxs = np.where((data_dict['move'] == j) & (data_dict['rep'] == i))[0]
-            idxs = idxs[0:whole_win]
-            train_emg.append(emg[idxs])
+#train_emg = []
+#for subject in train_subjects:
+#    for condition in range(2): # 0, 1 correpond to Flex First, and Extend First
+#        print(f'subject#: {subject}, condition: {condition}')
+#        ref = f["data"][condition][subject]
+#        eeg = np.array(f[ref])
+#        train_emg.append(emg[idxs])
+#
+#train_emg = np.array(train_emg)
+#train_emg = np.mean(train_emg,axis=0)
+#mean, std = np.mean(train_emg, axis=0), np.std(train_emg, axis=0)
 
-train_emg = np.array(train_emg)
-train_emg = np.mean(train_emg,axis=0)
-mean, std = np.mean(train_emg, axis=0), np.std(train_emg, axis=0)
-
-for subject in range(1,41):
-    print('subject#:', subject)
-    path = "/data/alireza/human_identification/DB2/DB2_s" + str(subject) + "/DB2_s" + str(subject) + "/"
-    data_dict = import_db2(path, subject)
-    emg = data_dict['emg']
-    emg = apply_mu(emg)
-    emg = Normalize(mean,std, emg)
-
-    for j in (train_moves):
-        for i in train_reps:
-            idxs = np.where((data_dict['move'] == j) & (data_dict['rep'] == i))[0]
-            idxs = idxs[0:whole_win]
-            possible_targets = np.array(range(idxs[0] + (window_len-1), idxs[-1]+1, window_inc))
-            for win_end in possible_targets:
-                win_start = win_end - (window_len-1)
-                Sxx = spectrogram_per_channel(emg[win_start:win_end+1], sensors_list)
+for subject in train_subjects:
+    for condition in range(2): # 0, 1 correpond to Flex First, and Extend First
+        print(f'Train subject#: {subject}, condition: {condition}')
+        ref = f["data"][condition][subject]
+        eeg = np.array(f[ref])
+        for i_trial in range(n_trial):
+            for j_windows in range(n_windows):
+                Sxx = spectrogram_per_channel(eeg[i_trial,j_windows*window_inc:j_windows*window_inc+window_len,:])
                 f_train["data"][u,...] = Sxx
-                f_train["moves"][u]    = j
-                f_train["labels"][u]   = subject
-                f_train["reps"][u]     = i
+                f_train["subject"][u]  = subject
+                f_train["label"][u]    = condition
+                f_train["trial"][u]    = i_trial
                 u += 1
 
-    for j in (test_moves):
-        for i in test_reps:
-            idxs = np.where((data_dict['move'] == j) & (data_dict['rep'] == i))[0]
-            idxs = idxs[0:whole_win]
-            possible_targets = np.array(range(idxs[0] + (window_len-1), idxs[-1]+1, window_inc))
-            for win_end in possible_targets:
-                win_start = win_end - (window_len-1)
-                Sxx = spectrogram_per_channel(emg[win_start:win_end+1],test_sensors_list)
+for subject in test_subjects:
+    for condition in range(2): # 0, 1 correpond to Flex First, and Extend First
+        print(f'Test subject#: {subject}, condition: {condition}')
+        ref = f["data"][condition][subject]
+        eeg = np.array(f[ref])
+        for i_trial in range(n_trial):
+            for j_windows in range(n_windows):
+                Sxx = spectrogram_per_channel(eeg[i_trial,j_windows*window_inc:j_windows*window_inc+window_len,:])
                 f_test["data"][s,...] = Sxx
-                f_test["moves"][s]    = j
-                f_test["labels"][s]   = subject
-                f_test["reps"][s]     = i
+                f_test["subject"][s]  = subject
+                f_test["label"][s]    = condition
+                f_test["trial"][s]    = i_trial
                 s += 1
 
-    for j in (valid_moves):
-        for i in valid_reps:
-            idxs = np.where((data_dict['move'] == j) & (data_dict['rep'] == i))[0]
-            idxs = idxs[0:whole_win]
-            possible_targets = np.array(range(idxs[0] + (window_len-1), idxs[-1]+1, window_inc))
-            for win_end in possible_targets:
-                win_start = win_end - (window_len-1)
-                Sxx = spectrogram_per_channel(emg[win_start:win_end+1], test_sensors_list)
+for subject in valid_subjects:
+    for condition in range(2): # 0, 1 correpond to Flex First, and Extend First
+        print(f'Valid subject#: {subject}, condition: {condition}')
+        ref = f["data"][condition][subject]
+        eeg = np.array(f[ref])
+        for i_trial in range(n_trial):
+            for j_windows in range(n_windows):
+                Sxx = spectrogram_per_channel(eeg[i_trial,j_windows*window_inc:j_windows*window_inc+window_len,:])
                 f_valid["data"][v,...] = Sxx
-                f_valid["moves"][v]    = j
-                f_valid["labels"][v]   = subject
-                f_valid["reps"][v]     = i
+                f_valid["subject"][v]  = subject
+                f_valid["label"][v]    = condition
+                f_valid["trial"][v]    = i_trial
                 v += 1
 
 f_train.close()
