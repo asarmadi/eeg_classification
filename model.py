@@ -7,19 +7,19 @@ class Net(nn.Module):
     def __init__(self, in_shape, out_shape):
         super(Net, self).__init__()
         self.conv_layer1 = nn.Sequential(nn.Conv2d(in_shape[0], 20, kernel_size=3),
-#                           nn.BatchNorm2d(20),
+                           nn.BatchNorm2d(20),
                            nn.ReLU(inplace=True),
 )
 #                           nn.AvgPool2d(2,stride=2))
 
         self.conv_layer2 = nn.Sequential(nn.Conv2d(20, 40, kernel_size=3, stride=(2,1)),
- #                          nn.BatchNorm2d(40),
+                           nn.BatchNorm2d(40),
                            nn.ReLU(inplace=True),
 )
 #                           nn.AvgPool2d(2,stride=2))
 
         self.conv_layer3 = nn.Sequential(nn.Conv2d(40, 60, kernel_size=3, stride=(2,1)),
-  #                         nn.BatchNorm2d(60),
+                           nn.BatchNorm2d(60),
                            nn.ReLU(inplace=True),
 )
 #                           nn.AvgPool2d(2,stride=2))
