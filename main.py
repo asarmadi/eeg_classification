@@ -9,11 +9,10 @@ from torch.nn import functional as F
 
 import os
 import argparse
-import matplotlib.pyplot as plt
 from config import *
 from model import *
-from utils import *
-from hdf5_dataset_c import *
+from utils import progress_bar
+from hdf5_dataset import *
 
 parser = argparse.ArgumentParser(description='Backdoor Detection')
 parser.add_argument('--device', default='cuda:0',type=str, help='GPU device')
@@ -27,17 +26,17 @@ parser.add_argument('--wd', default=0.001,type=float,help='Weight Decay')
 args = parser.parse_args()
 
 best_acc = 0
-trainset = HDF5Dataset(args.data+'train_2d.h5')
-validset = HDF5Dataset(args.data+'valid_2d.h5')
+trainset = HDF5Dataset('./data/train_2d.h5')
+validset = HDF5Dataset('./data/valid_2d.h5')
 
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,    shuffle=True,  num_workers=args.num_workers, pin_memory=False)
-testloader  = torch.utils.data.DataLoader(testset,  batch_size=args.batch_size*10, shuffle=False, num_workers=args.num_workers, pin_memory=False)
+validloader  = torch.utils.data.DataLoader(validset,  batch_size=args.batch_size*10, shuffle=False, num_workers=args.num_workers, pin_memory=False)
 
-inputs, _, _,_ = next(iter(trainloader))
+inputs, _ = next(iter(trainloader))
 #inputs, _ = next(iter(trainloader))
 
 in_shape=inputs[0,:,:,:].shape
-net = Net(in_shape, n_sub)
+net = Net(in_shape, n_subjects)
 #net.load_state_dict(torch.load('./checkpoint/Net_all_18.pth',map_location=device))
 net = net.to(args.device)
 
@@ -55,7 +54,7 @@ for m in net.modules():
 net.eval()
 
 pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
-print(len(testloader.dataset), inputs.shape, pytorch_total_params)
+print(len(validloader.dataset), inputs.shape, pytorch_total_params)
 optimizer = optim.Adam(net.parameters(), lr=args.lr,  weight_decay=args.wd)
 #optimizer = torch.optim.RMSprop(net.parameters(), lr=args.lr)
 
@@ -71,10 +70,10 @@ def train(epoch):
     train_loss = 0
     correct = 0
     total = 0
-    for batch_idx, (inputs, targets, _, _) in enumerate(trainloader):
+    for batch_idx, (inputs, targets) in enumerate(trainloader):
         inputs, targets = inputs.to(args.device), targets.to(args.device)
         optimizer.zero_grad()
-        outputs = net(inputs[:,hybrid_sensors_list,:,:])
+        outputs = net(inputs)
         loss = criterion(outputs, targets.long())
         loss.backward()
         optimizer.step()
@@ -92,13 +91,13 @@ def test(epoch,args):
     correct = 0
     total = 0
     with torch.no_grad():
-        for batch_idx, (inputs, targets, _, _) in enumerate(testloader):
+        for batch_idx, (inputs, targets) in enumerate(validloader):
             inputs, targets = inputs.to(args.device), targets.to(args.device)
             outputs = net(inputs)
             _, predicted = outputs.max(1)
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
-            progress_bar(batch_idx, len(testloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
+            progress_bar(batch_idx, len(validloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
 
         print('Test Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
         clean_acc = 100.*correct/total
