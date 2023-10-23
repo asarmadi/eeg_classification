@@ -1,23 +1,6 @@
-from nina_helper import *
-import csv
-import numpy as np
-import os
-import random
-import pandas as pd
 import h5py
-import re
-import scipy 
 from config import *
 from scipy import signal
-from scipy.fftpack import fft
-from sklearn.preprocessing import MinMaxScaler
-from utils import get_normalization_params, Normalize
-
-print('test_moves:', test_moves)
-
-def apply_mu(input):
-    mu = 2048
-    return np.sign(input)*(np.log(1+mu*np.abs(input))/(np.log(1+mu)))
 
 def spectrogram_per_channel(g, s_list):
     channels = []
@@ -27,30 +10,28 @@ def spectrogram_per_channel(g, s_list):
         channels.append(np.abs(Sxx[:250,:]))
     return np.array(channels)
 
-n_channels = len(sensors_list)
-
-n_samples_train = n_sub*len(train_reps)*len(train_moves)*((whole_win-window_len)/window_inc+1)
-n_samples_valid = n_sub*len(valid_reps)*len(test_moves) *((whole_win-window_len)/window_inc+1)
-n_samples_test  = n_sub*len(test_reps) *len(test_moves) *((whole_win-window_len)/window_inc+1)
+n_samples_train = n_subjects*len(train_trials)*((n_timepoints-window_len)/window_inc+1)
+n_samples_valid = n_subjects*len(valid_trials)*((n_timepoints-window_len)/window_inc+1)
+n_samples_test  = n_subjects*len(test_trials) *((n_timepoints-window_len)/window_inc+1)
 
 train_shape = (n_samples_train, n_channels, 250, 25)
 valid_shape = (n_samples_valid, n_channels, 250, 25)
 test_shape  = (n_samples_test,  n_channels, 250, 25)
 
-f_train = h5py.File(file_path+'train_2d'+name_str+'_'+str(whole_win)+'.h5', "w")
+f_train = h5py.File(file_path+'train_2d.h5', "w")
 f_train.create_dataset("data", train_shape)
 f_train.create_dataset("labels", (n_samples_train,))
 f_train.create_dataset("moves", (n_samples_train,))
 f_train.create_dataset("reps", (n_samples_train,))
 
-f_test = h5py.File(file_path+'test_2d'+name_str+'_'+str(whole_win)+'.h5', "w")
+f_test = h5py.File(file_path+'test_2d.h5', "w")
 f_test.create_dataset("data", test_shape)
 f_test.create_dataset("labels", (n_samples_test,))
 f_test.create_dataset("moves", (n_samples_test,))
 f_test.create_dataset("reps", (n_samples_test,))
 
 
-f_valid = h5py.File(file_path+'valid_2d'+name_str+'_'+str(whole_win)+'.h5', "w")
+f_valid = h5py.File(file_path+'valid_2d.h5', "w")
 f_valid.create_dataset("data", valid_shape)
 f_valid.create_dataset("labels", (n_samples_valid,))
 f_valid.create_dataset("moves", (n_samples_valid,))
@@ -60,16 +41,17 @@ u = 0
 s = 0    # sth sample in test set
 v = 0    # vth sample in validation set
 
-#f = open('data/nina_stats_min.csv', 'w')
-#writer = csv.writer(f)
-#f1 = open('data/nina_stats_max.csv', 'w')
-#writer1 = csv.writer(f1)
+path = file_path + "SF_Obs_MLdata.mat"
+f = h5py.File(path,'r')
+data = f.get('data')
+data = np.array(data)
+print(data)
+exit(0)
 
 train_emg = []
-for subject in range(1,41):
+for subject in range(1,n_subjects):
     print('subject#:', subject)
-    path = "/data/alireza/human_identification/DB2/DB2_s" + str(subject) + "/DB2_s" + str(subject) + "/"
-    data_dict = import_db2(path, subject)
+    
     emg = data_dict['emg']
     emg = apply_mu(emg)
     for j in (train_moves):
