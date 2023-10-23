@@ -22,7 +22,7 @@ parser.add_argument('--n_epochs', default=500, type=int, help='Number of epochs'
 parser.add_argument('--num_workers', default=4, type=int, help='Test Batch Size')
 parser.add_argument('--sensor', default=0, type=int, help='sensor')
 parser.add_argument('--lr', default=0.001,type=float,help='Learning Rate')
-parser.add_argument('--wd', default=0.001,type=float,help='Weight Decay')
+parser.add_argument('--wd', default=0.01,type=float,help='Weight Decay')
 args = parser.parse_args()
 
 best_acc = 0
@@ -54,7 +54,7 @@ for m in net.modules():
 net.eval()
 
 pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
-print(len(validloader.dataset), inputs.shape, pytorch_total_params)
+print(inputs.shape, pytorch_total_params)
 optimizer = optim.Adam(net.parameters(), lr=args.lr,  weight_decay=args.wd)
 #optimizer = torch.optim.RMSprop(net.parameters(), lr=args.lr)
 
