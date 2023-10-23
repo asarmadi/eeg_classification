@@ -9,9 +9,9 @@ def spectrogram_per_channel(g):
         channels.append(np.abs(Sxx[:250,:]))
     return np.array(channels)
 
-n_samples_train = len(train_subjects)*n_windows*n_trial
-n_samples_valid = len(valid_subjects)*n_windows*n_trial
-n_samples_test  = len(test_subjects) *n_windows*n_trial
+n_samples_train = len(train_subjects)*n_windows*n_trial*2
+n_samples_valid = len(valid_subjects)*n_windows*n_trial*2
+n_samples_test  = len(test_subjects) *n_windows*n_trial*2
 
 train_shape = (n_samples_train, n_channels, 250, 21)
 valid_shape = (n_samples_valid, n_channels, 250, 21)
