@@ -9,8 +9,10 @@ n_trial      = 36  # For Imaginary
 file_path    = './data/'  # Path to save the h5 files
 
 window_len  = 1000
-window_inc   = 10
+window_inc  = 10
+n_windows   = ((n_timepoints-window_len)//window_inc+1)
 
-train_trials = np.arange(0,30)
-valid_trials = [30, 33, 35]
-test_trials  = [31, 32, 34]
+# Bad Subjects: [0,5,11,18]
+train_subjects = [1,2,3,4,6,8,9,12,13,14,15,16,17,19]
+valid_subjects  = [7]
+test_subjects   = [10]
