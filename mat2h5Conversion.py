@@ -23,6 +23,7 @@ f_train.create_dataset("label", (n_samples_train,))
 f_train.create_dataset("subject", (n_samples_train,))
 f_train.create_dataset("trial", (n_samples_train,))
 
+'''
 f_test = h5py.File(file_path+'test_2d.h5', "w")
 f_test.create_dataset("data", test_shape)
 f_test.create_dataset("label", (n_samples_test,))
@@ -35,7 +36,7 @@ f_valid.create_dataset("data", valid_shape)
 f_valid.create_dataset("label", (n_samples_valid,))
 f_valid.create_dataset("subject", (n_samples_valid,))
 f_valid.create_dataset("trial", (n_samples_valid,))
-
+'''
 u = 0
 s = 0    # sth sample in test set
 v = 0    # vth sample in validation set
@@ -69,6 +70,7 @@ for subject in train_subjects:
                 f_train["label"][u]    = condition
                 f_train["trial"][u]    = i_trial
                 u += 1
+'''
 
 for subject in test_subjects:
     for condition in range(2): # 0, 1 correpond to Flex First, and Extend First
@@ -101,4 +103,6 @@ for subject in valid_subjects:
 f_train.close()
 f_test.close()
 f_valid.close()
+'''
+f_train.close()
 
