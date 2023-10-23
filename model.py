@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import reshape
-from config import n_sub
 
 class Net(nn.Module):
     def __init__(self, in_shape, out_shape):
@@ -32,7 +31,7 @@ class Net(nn.Module):
 #                           nn.AvgPool2d(2,stride=2))
 
 
-        self.fc1 = nn.Linear(80 * 9 * 30, out_shape)
+        self.fc1 = nn.Linear(80 * 7 * 30, out_shape)
         self.relu = nn.ReLU(inplace=True)
 #        self.dropout = nn.Dropout(0.2)
 
