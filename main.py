@@ -10,17 +10,14 @@ from torch.nn import functional as F
 import os
 import argparse
 from config import *
-from model import *
-from utils import progress_bar
-from hdf5_dataset import *
+from utils.utils import progress_bar, model_loader
+from utils.hdf5_dataset import *
 
 parser = argparse.ArgumentParser(description='Backdoor Detection')
 parser.add_argument('--device', default='cuda:0',type=str, help='GPU device')
-parser.add_argument('--dataset', default='nina',type=str, help='myo or nina')
 parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
 parser.add_argument('--n_epochs', default=500, type=int, help='Number of epochs')
 parser.add_argument('--num_workers', default=4, type=int, help='Test Batch Size')
-parser.add_argument('--sensor', default=0, type=int, help='sensor')
 parser.add_argument('--lr', default=0.001,type=float,help='Learning Rate')
 parser.add_argument('--wd', default=0.01,type=float,help='Weight Decay')
 args = parser.parse_args()
@@ -30,13 +27,19 @@ trainset = HDF5Dataset('./data/train_2d.h5')
 validset = HDF5Dataset('./data/valid_2d.h5')
 
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,    shuffle=True,  num_workers=args.num_workers, pin_memory=False)
-validloader  = torch.utils.data.DataLoader(validset,  batch_size=args.batch_size*10, shuffle=False, num_workers=args.num_workers, pin_memory=False)
+validloader  = torch.utils.data.DataLoader(validset,  batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, pin_memory=False)
 
 inputs, _ = next(iter(trainloader))
 #inputs, _ = next(iter(trainloader))
 
 in_shape=inputs[0,:,:,:].shape
-net = Net(in_shape, n_subjects)
+net = model_loader(config)
+if args.model_type == 'cnn':
+   from models.cnn_models import *
+   net = Net(in_shape, n_subjects)
+elif args.model_type == 'caspnet':
+   from models.caspnet import *
+   net = CapsNet(config)
 #net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
 net = net.to(args.device)
 '''

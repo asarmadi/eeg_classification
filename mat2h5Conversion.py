@@ -5,8 +5,8 @@ from scipy import signal
 def spectrogram_per_channel(g):
     channels = []
     for j in range(n_channels):
-        f, t, Sxx = signal.stft(g[:, j], fs=1000, nperseg=1000, noverlap=990)
-        channels.append(np.abs(Sxx[:50,:]))
+        f, t, Sxx = signal.stft(g[:, j], fs=1000, nperseg=300, noverlap=250)
+        channels.append(np.abs(Sxx[:20,:]))
     return np.array(channels)
 
 def Normalize(ave, std, x):
@@ -17,9 +17,9 @@ print(n_samples_train, len(train_subjects), n_windows, n_trial)
 n_samples_valid = len(valid_subjects)*n_windows*n_trial*2
 n_samples_test  = len(test_subjects) *n_windows*n_trial*2
 
-train_shape = (n_samples_train, n_channels, 50, 101)
-valid_shape = (n_samples_valid, n_channels, 50, 101)
-test_shape  = (n_samples_test,  n_channels, 50, 101)
+train_shape = (n_samples_train, n_channels, 20, 21)
+valid_shape = (n_samples_valid, n_channels, 20, 21)
+test_shape  = (n_samples_test,  n_channels, 20, 21)
 
 f_train = h5py.File(file_path+'train_2d.h5', "w")
 f_train.create_dataset("data", train_shape)

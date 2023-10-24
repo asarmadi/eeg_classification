@@ -1,6 +1,7 @@
 import numpy as np
 
-n_subjects   = 20
+class Config:
+      self.n_subjects   = 20
 n_conditions = 4   # FF, EF, FT, ET
 n_channels   = 56
 n_timepoints = 2000

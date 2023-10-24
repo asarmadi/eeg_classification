@@ -10,7 +10,7 @@ from torch.nn import functional as F
 import os
 import argparse
 from config import *
-from model import *
+from models.cnn_model import *
 from utils import progress_bar
 from hdf5_dataset import *
 

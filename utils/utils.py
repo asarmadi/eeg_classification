@@ -14,6 +14,15 @@ term_width = int(term_width)
 TOTAL_BAR_LENGTH = 65.
 last_time = time.time()
 begin_time = last_time
+
+def model_loader(config):
+    if name == 'cnn':
+       from models.cnn_models import *
+       return Net(config.in_shape, config.n_subjects)
+    elif name == 'caspnet':
+       from models.caspnet import *
+       return CapsNet(config)
+
 def progress_bar(current, total, msg=None):
     global last_time, begin_time
     if current == 0:
