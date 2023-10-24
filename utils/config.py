@@ -1,7 +1,9 @@
 import numpy as np
 
 class Config:
-      def __init__(self, model='cnn'):
+      def __init__(self, model, in_shape):
+          self.model_type   = model
+          self.in_shape     = in_shape
           self.n_subjects   = 20
           self.n_conditions = 4   # FF, EF, FT, ET
           self.n_channels   = 56

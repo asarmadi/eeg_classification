@@ -25,7 +25,7 @@ inputs, _ = next(iter(trainloader))
 #inputs, _ = next(iter(trainloader))
 
 in_shape=inputs[0,:,:,:].shape
-config = Config(args.model_type)
+config = Config(args.model_type, in_shape)
 net = model_loader(config)
 #net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
 net = net.to(args.device)

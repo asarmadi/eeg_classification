@@ -1,4 +1,6 @@
+import torch
 import argparse
+import torch.backends.cudnn as cudnn
 from utils.config import Config
 from utils.utils import progress_bar, model_loader, data_loader
 
@@ -11,11 +13,11 @@ args = parser.parse_args()
 
 best_acc = 0
 trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers)
-config = Config(args.model_type)
-net = model_loader(config)
 inputs, _ = next(iter(testloader))
-
 in_shape=inputs[0,:,:,:].shape
+
+config = Config(args.model_type, in_shape)
+net = model_loader(config)
 net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
 net = net.to(args.device)
 

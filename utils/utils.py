@@ -5,8 +5,11 @@
 '''
 import os
 import sys
+sys.path.insert(0, os.path.join(sys.path[0], '..'))
 import time
 import torch
+from models.cnn_model import Net
+from models.capsnet import CapsNet
 from utils.hdf5_dataset import *
 
 
@@ -18,11 +21,9 @@ last_time = time.time()
 begin_time = last_time
 
 def model_loader(config):
-    if config.name == 'cnn':
-       from models.cnn_models import *
+    if config.model_type == 'cnn':
        return Net(config.in_shape, config.n_subjects)
-    elif config.name == 'caspnet':
-       from models.caspnet import *
+    elif config.model_type == 'caspnet':
        return CapsNet(config)
     
 def data_loader(batch_size, num_workers):
