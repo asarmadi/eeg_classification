@@ -1,20 +1,17 @@
 import torch
 import torch.nn as nn
-import torch.utils.data as data
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
-from torchvision import transforms
 from torch.optim.lr_scheduler import MultiStepLR
-from torch.nn import functional as F
 
-import os
 import argparse
-from config import *
-from utils.utils import progress_bar, model_loader
-from utils.hdf5_dataset import *
+from utils.config import Config
+from utils.utils import progress_bar, model_loader, data_loader
+
 
 parser = argparse.ArgumentParser(description='Backdoor Detection')
 parser.add_argument('--device', default='cuda:0',type=str, help='GPU device')
+parser.add_argument('--model_type', default='cnn',type=str, help='cnn, caspnet')
 parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
 parser.add_argument('--n_epochs', default=500, type=int, help='Number of epochs')
 parser.add_argument('--num_workers', default=4, type=int, help='Test Batch Size')
@@ -23,23 +20,13 @@ parser.add_argument('--wd', default=0.01,type=float,help='Weight Decay')
 args = parser.parse_args()
 
 best_acc = 0
-trainset = HDF5Dataset('./data/train_2d.h5')
-validset = HDF5Dataset('./data/valid_2d.h5')
-
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size,    shuffle=True,  num_workers=args.num_workers, pin_memory=False)
-validloader  = torch.utils.data.DataLoader(validset,  batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, pin_memory=False)
-
+trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers)
 inputs, _ = next(iter(trainloader))
 #inputs, _ = next(iter(trainloader))
 
 in_shape=inputs[0,:,:,:].shape
+config = Config(args.model_type)
 net = model_loader(config)
-if args.model_type == 'cnn':
-   from models.cnn_models import *
-   net = Net(in_shape, n_subjects)
-elif args.model_type == 'caspnet':
-   from models.caspnet import *
-   net = CapsNet(config)
 #net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
 net = net.to(args.device)
 '''

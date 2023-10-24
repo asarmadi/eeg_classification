@@ -6,6 +6,8 @@
 import os
 import sys
 import time
+import torch
+from utils.hdf5_dataset import *
 
 
 _, term_width = os.popen('stty size', 'r').read().split()
@@ -16,12 +18,24 @@ last_time = time.time()
 begin_time = last_time
 
 def model_loader(config):
-    if name == 'cnn':
+    if config.name == 'cnn':
        from models.cnn_models import *
        return Net(config.in_shape, config.n_subjects)
-    elif name == 'caspnet':
+    elif config.name == 'caspnet':
        from models.caspnet import *
        return CapsNet(config)
+    
+def data_loader(batch_size, num_workers):
+    trainset = HDF5Dataset('./data/train_2d.h5')
+    validset = HDF5Dataset('./data/valid_2d.h5')
+    testset  = HDF5Dataset('./data/test_2d.h5')
+    
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=False)
+    validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=False)
+    testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=False)
+
+    return trainloader, validloader, testloader
+
 
 def progress_bar(current, total, msg=None):
     global last_time, begin_time
