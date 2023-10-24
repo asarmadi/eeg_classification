@@ -37,18 +37,17 @@ inputs, _ = next(iter(trainloader))
 
 in_shape=inputs[0,:,:,:].shape
 net = Net(in_shape, n_subjects)
-#net.load_state_dict(torch.load('./checkpoint/Net_all_18.pth',map_location=device))
+#net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
 net = net.to(args.device)
-
 '''
 for m in net.modules():
     if isinstance(m, nn.Conv2d):
-       m.weight.data.normal_(0.0,2/np.sqrt(m.in_channels*m.out_channels*9))
-#       m.weight.data.normal_(0, 0.05)
+#       m.weight.data.normal_(0.0,2/np.sqrt(m.in_channels*m.out_channels*9))
+       m.weight.data.normal_(0, 0.05)
        m.bias.data.fill_(0.0)
     if type(m)==nn.Linear:
-       m.weight.data.normal_(0.0,2/np.sqrt(m.in_features))
-       #torch.nn.init.eye_(m.weight)
+#       m.weight.data.normal_(0.0,2/np.sqrt(m.in_features))
+       torch.nn.init.eye_(m.weight)
        m.bias.data.fill_(0.0)
 '''
 net.eval()
