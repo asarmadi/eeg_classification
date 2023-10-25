@@ -44,6 +44,16 @@ def test(model, dataloader, model_type, device):
         print('Test Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
         return 100.*correct/total
 
+def spectrogram_per_channel(g, fs, nperseg, noverlap):
+    channels = []
+    for j in range(n_channels):
+        f, t, Sxx = signal.stft(g[:, j], fs=fs, nperseg=nperseg, noverlap=noverlap)
+        channels.append(np.abs(Sxx[:20,:]))
+    return np.array(channels)
+
+def Normalize(ave, std, x):
+    return ((x-ave)/std)
+
 def onehot_encode(labels, device):
     onehot_tensor = torch.zeros(*labels.shape, 2) # 10 classes for MNIST
     labels = labels.type(torch.LongTensor)

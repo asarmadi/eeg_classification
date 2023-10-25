@@ -15,6 +15,9 @@ class Config:
           self.window_len  = 1000
           self.window_inc  = 20
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
+          self.fs          = 1000
+          self.nperseg     = 1000
+          self.noverlap    = 950
     
           # Bad Subjects: [0,5,10,11,18]
           self.train_subjects = [1,2,3,4,6,8,9,12,13,14,15,16,19]

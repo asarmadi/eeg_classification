@@ -1,19 +1,11 @@
 import h5py
-from config import *
+from utils.config import Config
 from scipy import signal
+from utils.utils import spectrogram_per_channel, Normalize
 
-def spectrogram_per_channel(g):
-    channels = []
-    for j in range(n_channels):
-        f, t, Sxx = signal.stft(g[:, j], fs=1000, nperseg=300, noverlap=250)
-        channels.append(np.abs(Sxx[:20,:]))
-    return np.array(channels)
+config = Config(None, None)
 
-def Normalize(ave, std, x):
-    return ((x-ave)/std)
-
-n_samples_train = len(train_subjects)*n_windows*n_trial*2
-print(n_samples_train, len(train_subjects), n_windows, n_trial)
+n_samples_train = len(config.train_subjects)*config.n_windows*config.n_trial*2
 n_samples_valid = len(valid_subjects)*n_windows*n_trial*2
 n_samples_test  = len(test_subjects) *n_windows*n_trial*2
 
