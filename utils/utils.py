@@ -30,7 +30,7 @@ def test(model, dataloader, model_type, device):
         for batch_idx, (inputs, targets) in enumerate(dataloader):
             inputs, targets = inputs.to(device), targets.to(device)
             if model_type == 'cnn':
-                 outputs = net(inputs)
+                 outputs = model(inputs)
             elif model_type == 'capsnet':
                  outputs, reconstructions, masked = model(inputs)
                  onehot_tensor = onehot_encode(targets, device)
@@ -48,7 +48,7 @@ def test(model, dataloader, model_type, device):
 def spectrogram_per_channel(g, config):
     channels = []
     for j in range(config.n_channels):
-        f, t, Sxx = signal.stft(g[:, j], fs=config.fs, nperseg=config.nperseg, noverlap=config.noverlap)
+        f, t, Sxx = signal.stft(g[:, j], fs=config.fs, nperseg=config.nperseg, noverlap=config.noverlap, padded=False, boundary=None)
         channels.append(np.abs(Sxx[:config.freq_cut,:]))
     return np.array(channels)
 

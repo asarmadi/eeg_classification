@@ -9,11 +9,9 @@ n_samples_train = len(config.train_subjects)*config.n_windows*config.n_trial*2
 n_samples_valid = len(config.valid_subjects)*config.n_windows*config.n_trial*2
 n_samples_test  = len(config.test_subjects) *config.n_windows*config.n_trial*2
 
-nTimeBins   = (config.window_len - config.nperseg) // (config.nperseg - config.noverlap) + 1
-
-train_shape = (n_samples_train, config.n_channels, config.freq_cut, nTimeBins)
-valid_shape = (n_samples_valid, config.n_channels, config.freq_cut, nTimeBins)
-test_shape  = (n_samples_test,  config.n_channels, config.freq_cut, nTimeBins)
+train_shape = (n_samples_train, config.n_channels, config.freq_cut, config.nTimeBins)
+valid_shape = (n_samples_valid, config.n_channels, config.freq_cut, config.nTimeBins)
+test_shape  = (n_samples_test,  config.n_channels, config.freq_cut, config.nTimeBins)
 
 f_train = h5py.File(config.file_path+'train_2d.h5', "w")
 f_train.create_dataset("data", train_shape)

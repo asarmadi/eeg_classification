@@ -8,7 +8,7 @@ Subject   = 2
 Condition = 0
 Trial     = 2
 Channel   = 37
-j_windows = 1
+j_windows = 0
 config    = Config(None, None)
 path = "./data/SF_Obs_MLdata.mat"
 f = h5py.File(path,'r')
@@ -26,8 +26,8 @@ plt.savefig('./Figs/1D_signal_Sub_'+str(Subject)+'_Cond_'+str(Condition)+'_Trial
 #plt.show()
 plt.close()
 
-f, t, Sxx = signal.stft(eeg, fs=config.fs, nperseg=config.nperseg, noverlap=config.noverlap)
-print(eeg.shape, f.shape, t.shape, Sxx.shape)
+f, t, Sxx = signal.stft(eeg, fs=config.fs, nperseg=config.nperseg, noverlap=config.noverlap, padded=False, boundary=None)
+print(eeg.shape, f.shape, t.shape, Sxx.shape, config.nTimeBins)
 plt.figure(1)
 im = plt.pcolormesh(t, f[:config.freq_cut], np.abs(Sxx[:config.freq_cut,:]), shading='gouraud')
 plt.colorbar(im)
