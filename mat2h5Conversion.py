@@ -9,7 +9,7 @@ n_samples_train = len(config.train_subjects)*config.n_windows*config.n_trial*2
 n_samples_valid = len(config.valid_subjects)*config.n_windows*config.n_trial*2
 n_samples_test  = len(config.test_subjects) *config.n_windows*config.n_trial*2
 
-nTimeBins   = (config.n_timepoints - config.nperseg) // (config.nperseg - config.noverlap) + 1
+nTimeBins   = (config.window_len - config.nperseg) // (config.nperseg - config.noverlap) + 1
 
 train_shape = (n_samples_train, config.n_channels, config.freq_cut, nTimeBins)
 valid_shape = (n_samples_valid, config.n_channels, config.freq_cut, nTimeBins)
