@@ -22,7 +22,7 @@ class Config:
           self.valid_subjects  = [7]
           self.test_subjects   = [17]
 
-          if model == 'caspnet':
+          if model == 'capsnet':
             # CNN (cnn)
             self.cnn_in_channels = self.n_channels
             self.cnn_out_channels = 256
@@ -33,14 +33,14 @@ class Config:
             self.pc_in_channels = 256
             self.pc_out_channels = 32
             self.pc_kernel_size = 9
-            self.pc_num_routes = 32 * 6 * 6
+            self.pc_num_routes = 32 * 2 * 3
 
             # Digit Capsule (dc)
-            self.dc_num_capsules = 10
-            self.dc_num_routes = 32 * 6 * 6
+            self.dc_num_capsules = 2
+            self.dc_num_routes = 32 * 2 * 3
             self.dc_in_channels = 8
             self.dc_out_channels = 16
 
             # Decoder
-            self.input_width = 28
-            self.input_height = 28               
+            self.input_width = 20
+            self.input_height = 21

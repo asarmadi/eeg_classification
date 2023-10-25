@@ -2,7 +2,7 @@ import torch
 import argparse
 import torch.backends.cudnn as cudnn
 from utils.config import Config
-from utils.utils import progress_bar, model_loader, data_loader
+from utils.utils import *
 
 parser = argparse.ArgumentParser(description='Backdoor Detection')
 parser.add_argument('--device', default='cuda:0',type=str, help='GPU device')
@@ -25,24 +25,10 @@ net.eval()
 
 cudnn.benchmark = True
 
-def test(dataLoader):
-    net.eval()
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(dataLoader):
-            inputs, targets = inputs.to(args.device), targets.to(args.device)
-            outputs = net(inputs)
-            _, predicted = outputs.max(1)
-            total += targets.size(0)
-            correct += predicted.eq(targets).sum().item()
-            progress_bar(batch_idx, len(testloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
-
-        print('Test Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
 print("Test Performance:")
-test(testloader)
+test(net, testloader, config.model_type, args.device)
 print("Validation Performance:")
-test(validloader)
+test(net, validloader, config.model_type, args.device)
 
 
 

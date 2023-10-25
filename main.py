@@ -5,8 +5,9 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import MultiStepLR
 
 import argparse
+import numpy as np
 from utils.config import Config
-from utils.utils import progress_bar, model_loader, data_loader
+from utils.utils import *
 
 
 parser = argparse.ArgumentParser(description='Backdoor Detection')
@@ -62,46 +63,37 @@ def train(epoch):
     for batch_idx, (inputs, targets) in enumerate(trainloader):
         inputs, targets = inputs.to(args.device), targets.to(args.device)
         optimizer.zero_grad()
-        outputs = net(inputs)
-        loss = criterion(outputs, targets.long())
+        if config.model_type == 'cnn':
+           outputs = net(inputs)
+           loss = criterion(outputs, targets.long())
+        elif config.model_type == 'capsnet':
+           outputs, reconstructions, masked = net(inputs)
+           onehot_tensor = onehot_encode(targets, args.device)
+           loss = net.loss(inputs, outputs, onehot_tensor, reconstructions)
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
         _, predicted = outputs.max(1)
         total += targets.size(0)
-        correct += predicted.eq(targets).sum().item()
+        if config.model_type == 'capsnet':
+           correct += sum(np.argmax(masked.data.cpu().numpy(), 1) == np.argmax(onehot_tensor.data.cpu().numpy(), 1))
+        else:
+           correct += predicted.eq(targets).sum().item()
 
         progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
-def test(epoch,args):
-    global best_acc
-    net.eval()
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(validloader):
-            inputs, targets = inputs.to(args.device), targets.to(args.device)
-            outputs = net(inputs)
-            _, predicted = outputs.max(1)
-            total += targets.size(0)
-            correct += predicted.eq(targets).sum().item()
-            progress_bar(batch_idx, len(validloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
-
-        print('Test Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
-        clean_acc = 100.*correct/total
-        if epoch == 1:
-           best_acc = clean_acc
-        if (clean_acc >= best_acc):
-            print('Saving..')
-            torch.save(net.state_dict(), './checkpoint/Net.pth')
-            best_acc = clean_acc
-
-
 for epoch in range(1,args.n_epochs):
     print('\nEpoch: {}/{}'.format(epoch,args.n_epochs))
     train(epoch)
-    test(epoch,args)
+    clean_acc = test(net, validloader, config.model_type, args.device)
+    if epoch == 1:
+       best_acc = clean_acc
+    if (clean_acc >= best_acc):
+       print('Saving..')
+       torch.save(net.state_dict(), './checkpoint/Net.pth')
+       best_acc = clean_acc
+
 
     scheduler.step(epoch)
 

@@ -11,6 +11,7 @@ import torch
 from models.cnn_model import Net
 from models.capsnet import CapsNet
 from utils.hdf5_dataset import *
+import numpy as np
 
 
 _, term_width = os.popen('stty size', 'r').read().split()
@@ -20,10 +21,40 @@ TOTAL_BAR_LENGTH = 65.
 last_time = time.time()
 begin_time = last_time
 
+def test(model, dataloader, model_type, device):
+    model.eval()
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for batch_idx, (inputs, targets) in enumerate(dataloader):
+            inputs, targets = inputs.to(device), targets.to(device)
+            if model_type == 'cnn':
+                 outputs = net(inputs)
+            elif model_type == 'capsnet':
+                 outputs, reconstructions, masked = model(inputs)
+                 onehot_tensor = onehot_encode(targets, device)
+            _, predicted = outputs.max(1)
+            total += targets.size(0)
+            if model_type == 'capsnet':
+               correct += sum(np.argmax(masked.data.cpu().numpy(), 1) == np.argmax(onehot_tensor.data.cpu().numpy(), 1))
+            else:
+               correct += predicted.eq(targets).sum().item()
+            progress_bar(batch_idx, len(dataloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
+
+        print('Test Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
+        return 100.*correct/total
+
+def onehot_encode(labels, device):
+    onehot_tensor = torch.zeros(*labels.shape, 2) # 10 classes for MNIST
+    labels = labels.type(torch.LongTensor)
+    onehot_tensor = onehot_tensor.scatter(1, labels.view(-1, 1), 1)
+    onehot_tensor = onehot_tensor.to(device)
+    return onehot_tensor
+
 def model_loader(config):
     if config.model_type == 'cnn':
        return Net(config.in_shape, config.n_subjects)
-    elif config.model_type == 'caspnet':
+    elif config.model_type == 'capsnet':
        return CapsNet(config)
     
 def data_loader(batch_size, num_workers):

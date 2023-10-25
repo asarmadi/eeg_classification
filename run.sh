@@ -1,7 +1,7 @@
 LR=0.001
-WD=0.1
-BATCH_SIZE=128
-MODEL_TYPE=cnn
+WD=0.0
+BATCH_SIZE=32
+MODEL_TYPE=capsnet
 
 #python mat2h5Conversion.py
 
