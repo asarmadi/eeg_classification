@@ -12,15 +12,15 @@ class Config:
           self.file_path    = './data/'  # Path to save the h5 files
           
           # Each segement
-          self.window_len  = 2000
+          self.window_len  = 500
           self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
           # STFT Hyper-parameters
           self.fs          = 1000
           self.nperseg     = 1000
-          self.noverlap    = 900
-          self.freq_cut    = 16
+          self.noverlap    = 950
+          self.freq_cut    = 21
           self.nTimeBins   = (self.window_len - self.nperseg) // (self.nperseg - self.noverlap) + 1
     
           # Bad Subjects: [0,5,10,11,18]
@@ -46,9 +46,9 @@ class Config:
             # Digit Capsule (dc)
             self.dc_num_capsules = 2
             self.dc_num_routes = 32 * 2 * 3
-            self.dc_in_channels = 8
+            self.dc_in_channels = 12
             self.dc_out_channels = 16
 
             # Decoder
-            self.input_width = 20
-            self.input_height = 21
+            self.input_width  = self.nTimeBins
+            self.input_height = self.freq_cut

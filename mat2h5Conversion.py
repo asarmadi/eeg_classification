@@ -42,7 +42,7 @@ f = h5py.File(path,'r')
 
 train_eeg = []
 for subject in config.train_subjects:
-    for condition in range(config.conditions): # 0, 1 correpond to Flex First, and Extend First
+    for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
         print(f'subject#: {subject}, condition: {condition}')
         ref = f["data"][condition][subject]
         eeg = np.array(f[ref])
@@ -54,7 +54,7 @@ mean, std = np.mean(train_eeg, axis=0), np.std(train_eeg, axis=0)
 print(mean.shape)
 
 for subject in config.train_subjects:
-    for condition in range(config.conditions): # 0, 1 correpond to Flex First, and Extend First
+    for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
         print(f'Train subject#: {subject}, condition: {condition}')
         ref = f["data"][condition][subject]
         eeg = np.array(f[ref])
@@ -69,7 +69,7 @@ for subject in config.train_subjects:
                 u += 1
 
 for subject in config.test_subjects:
-    for condition in range(config.conditions): # 0, 1 correpond to Flex First, and Extend First
+    for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
         print(f'Test subject#: {subject}, condition: {condition}')
         ref = f["data"][condition][subject]
         eeg = np.array(f[ref])
@@ -84,7 +84,7 @@ for subject in config.test_subjects:
                 s += 1
 
 for subject in config.valid_subjects:
-    for condition in range(config.conditions): # 0, 1 correpond to Flex First, and Extend First
+    for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
         print(f'Valid subject#: {subject}, condition: {condition}')
         ref = f["data"][condition][subject]
         eeg = np.array(f[ref])
