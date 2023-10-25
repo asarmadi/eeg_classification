@@ -18,6 +18,7 @@ class Config:
           self.fs          = 1000
           self.nperseg     = 1000
           self.noverlap    = 950
+          self.freq_cut       = 21
     
           # Bad Subjects: [0,5,10,11,18]
           self.train_subjects = [1,2,3,4,6,8,9,12,13,14,15,16,19]

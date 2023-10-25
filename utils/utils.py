@@ -12,6 +12,7 @@ from models.cnn_model import Net
 from models.capsnet import CapsNet
 from utils.hdf5_dataset import *
 import numpy as np
+from scipy import signal
 
 
 _, term_width = os.popen('stty size', 'r').read().split()
@@ -44,11 +45,11 @@ def test(model, dataloader, model_type, device):
         print('Test Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
         return 100.*correct/total
 
-def spectrogram_per_channel(g, fs, nperseg, noverlap):
+def spectrogram_per_channel(g, config):
     channels = []
-    for j in range(n_channels):
-        f, t, Sxx = signal.stft(g[:, j], fs=fs, nperseg=nperseg, noverlap=noverlap)
-        channels.append(np.abs(Sxx[:20,:]))
+    for j in range(config.n_channels):
+        f, t, Sxx = signal.stft(g[:, j], fs=config.fs, nperseg=config.nperseg, noverlap=config.noverlap)
+        channels.append(np.abs(Sxx[:config.freq_cut,:]))
     return np.array(channels)
 
 def Normalize(ave, std, x):

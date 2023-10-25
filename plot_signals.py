@@ -1,7 +1,7 @@
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
-from config import *
+from utils.config import Config
 from scipy import signal
 
 Subject   = 2
@@ -9,11 +9,12 @@ Condition = 0
 Trial     = 2
 Channel   = 2
 j_windows = 1
+config    = Config(None, None)
 path = "./data/SF_Obs_MLdata.mat"
 f = h5py.File(path,'r')
 ref = f["data"][Condition][Subject]
 eeg = np.array(f[ref])
-eeg = eeg[Trial,j_windows*window_inc:j_windows*window_inc+window_len,Channel]
+eeg = eeg[Trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,Channel]
 
 ## loading 1D signal
 
