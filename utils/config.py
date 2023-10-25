@@ -9,7 +9,6 @@ class Config:
           self.n_channels   = 56
           self.n_timepoints = 2000
           self.n_trial      = 36  # For Imaginary 
-          
           self.file_path    = './data/'  # Path to save the h5 files
           
           # Each segement
@@ -28,6 +27,7 @@ class Config:
           # train_subjects  = [1,2,3]
           self.valid_subjects  = [7]
           self.test_subjects   = [17]
+          self.conditions      = [0,1]
 
           if model == 'capsnet':
             # CNN (cnn)
