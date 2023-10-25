@@ -34,3 +34,9 @@ The data is stored in *.mat files under "data" folder. To convert this data into
 ```
 python mat2h5Conversion.py
 ```
+
+
+## Credits
+We thank authors of the following repos for their contributions to our codebase:
+
+* The CapsuleNet implementation is derived from [Pytorch-CapsuleNet]{https://github.com/jindongwang/Pytorch-CapsuleNet.git}
