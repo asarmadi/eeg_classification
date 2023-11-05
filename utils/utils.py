@@ -10,6 +10,7 @@ import time
 import torch
 from models.cnn_model import Net
 from models.capsnet import CapsNet
+from models.lstm import LSTMClassifier
 from utils.hdf5_dataset import *
 import numpy as np
 from scipy import signal
@@ -28,27 +29,36 @@ def test(model, dataloader, model_type, device):
     total = 0
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(dataloader):
-            inputs, targets = inputs.to(device), targets.to(device)
+            inputs, targets = inputs.to(device), targets.to(device).reshape(-1,1)
             if model_type == 'cnn':
                  outputs = model(inputs)
             elif model_type == 'capsnet':
                  outputs, reconstructions, masked = model(inputs)
                  onehot_tensor = onehot_encode(targets, device)
-            _, predicted = outputs.max(1)
+            predicted = outputs.round()
             total += targets.size(0)
             if model_type == 'capsnet':
                correct += sum(np.argmax(masked.data.cpu().numpy(), 1) == np.argmax(onehot_tensor.data.cpu().numpy(), 1))
             else:
                correct += predicted.eq(targets).sum().item()
+#               print(predicted, targets, predicted.eq(targets), predicted.eq(targets).sum())
+ #              input('enter')
             progress_bar(batch_idx, len(dataloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
 
         print('Test Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
         return 100.*correct/total
+    
+def count_num_classes(dataloader, label):
+    n_all_samples, n_label_samples = 0, 0
+    for batch_idx, (inputs, targets) in enumerate(dataloader):
+        n_all_samples += targets.size(0)
+        n_label_samples += sum(targets == label)
+    print(f'Label {label}: {n_label_samples}/{n_all_samples}')
 
 def spectrogram_per_channel(g, config):
     channels = []
     for j in range(config.n_channels):
-        f, t, Sxx = signal.stft(g[:, j], fs=config.fs, nperseg=config.nperseg, noverlap=config.noverlap, padded=False, boundary=None)
+        f, t, Sxx = signal.stft(g[:, j], fs=config.fs, nperseg=config.nperseg, noverlap=config.noverlap)
         channels.append(np.abs(Sxx[:config.freq_cut,:]))
     return np.array(channels)
 
@@ -64,15 +74,22 @@ def onehot_encode(labels, device):
 
 def model_loader(config):
     if config.model_type == 'cnn':
-       return Net(config.in_shape, config.n_subjects)
+       return Net(config)
     elif config.model_type == 'capsnet':
        return CapsNet(config)
-    
-def data_loader(batch_size, num_workers):
-    trainset = HDF5Dataset('./data/train_2d.h5')
-    validset = HDF5Dataset('./data/valid_2d.h5')
-    testset  = HDF5Dataset('./data/test_2d.h5')
-    
+    elif config.model_type == 'lstm':
+       return LSTMClassifier(config)
+
+def data_loader(batch_size, num_workers, model_type):
+    if model_type == 'lstm':
+       trainset = HDF5Dataset('./data/train_1d.h5')
+       validset = HDF5Dataset('./data/valid_1d.h5')
+       testset  = HDF5Dataset('./data/test_1d.h5')
+    else:
+       trainset = HDF5Dataset('./data/train_2d.h5')
+       validset = HDF5Dataset('./data/valid_2d.h5')
+       testset  = HDF5Dataset('./data/test_2d.h5')
+
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=False)
     validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=False)
     testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=False)

@@ -13,10 +13,8 @@ args = parser.parse_args()
 
 best_acc = 0
 trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers)
-inputs, _ = next(iter(testloader))
-in_shape=inputs[0,:,:,:].shape
 
-config = Config(args.model_type, in_shape)
+config = Config(args.model_type)
 net = model_loader(config)
 net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
 net = net.to(args.device)

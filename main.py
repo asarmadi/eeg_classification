@@ -12,7 +12,7 @@ from utils.utils import *
 
 parser = argparse.ArgumentParser(description='Backdoor Detection')
 parser.add_argument('--device', default='cuda:0',type=str, help='GPU device')
-parser.add_argument('--model_type', default='cnn',type=str, help='cnn, caspnet')
+parser.add_argument('--model_type', default='cnn',type=str, help='cnn, caspnet, lstm')
 parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
 parser.add_argument('--n_epochs', default=500, type=int, help='Number of epochs')
 parser.add_argument('--num_workers', default=4, type=int, help='Test Batch Size')
@@ -21,14 +21,13 @@ parser.add_argument('--wd', default=0.01,type=float,help='Weight Decay')
 args = parser.parse_args()
 
 best_acc = 0
-trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers)
-inputs, _ = next(iter(trainloader))
-#inputs, _ = next(iter(trainloader))
+trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.model_type)
 
-in_shape=inputs[0,:,:,:].shape
-config = Config(args.model_type, in_shape)
+config = Config(args.model_type)
 net = model_loader(config)
 #net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
+#net = torch.nn.DataParallel(net)
+#net = net.module
 net = net.to(args.device)
 '''
 for m in net.modules():
@@ -50,8 +49,9 @@ optimizer = optim.Adam(net.parameters(), lr=args.lr,  weight_decay=args.wd)
 
 cudnn.benchmark = True
 
-#criterion = nn.CrossEntropyLoss()
-criterion = nn.NLLLoss()
+criterion = nn.BCELoss()
+#criterion = nn.NLLLoss()
+#criterion = nn.BCELoss()
 scheduler = MultiStepLR(optimizer, milestones=[100,200], gamma=0.1)
 #scheduler = CyclicLR(optimizer, cosine(t_max=len(trainloader) * 2, eta_min=args.lr/100))
 
@@ -61,24 +61,27 @@ def train(epoch):
     correct = 0
     total = 0
     for batch_idx, (inputs, targets) in enumerate(trainloader):
-        inputs, targets = inputs.to(args.device), targets.to(args.device)
+        inputs, targets = inputs.to(args.device), targets.to(args.device).reshape(-1,1)
         optimizer.zero_grad()
         if config.model_type == 'cnn':
            outputs = net(inputs)
-           loss = criterion(outputs, targets.long())
+           loss = criterion(outputs, targets)
         elif config.model_type == 'capsnet':
            outputs, reconstructions, masked = net(inputs)
-           onehot_tensor = onehot_encode(targets, args.device)
-           loss = net.loss(inputs, outputs, onehot_tensor, reconstructions)
+           #onehot_tensor = onehot_encode(targets, args.device)
+           #loss = net.loss(inputs, outputs, onehot_tensor, reconstructions)
+        #loss = criterion(outputs, targets.long())
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
-        _, predicted = outputs.max(1)
+        predicted = outputs.round()
         total += targets.size(0)
         if config.model_type == 'capsnet':
            correct += sum(np.argmax(masked.data.cpu().numpy(), 1) == np.argmax(onehot_tensor.data.cpu().numpy(), 1))
         else:
            correct += predicted.eq(targets).sum().item()
+#           print(predicted, targets, predicted.eq(targets), predicted.eq(targets).sum())
+ #          input('enter')
 
         progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))

@@ -10,13 +10,27 @@ class ConvLayer(nn.Module):
     def __init__(self, in_channels=1, out_channels=256, kernel_size=9):
         super(ConvLayer, self).__init__()
 
-        self.conv = nn.Conv2d(in_channels=in_channels,
+        self.conv  = nn.Conv2d(in_channels=in_channels,
                               out_channels=out_channels,
                               kernel_size=kernel_size,
-                              stride=1
+                              stride=2
                               )
+        
+#        self.conv1 = nn.Conv2d(in_channels=out_channels,
+ #                             out_channels=out_channels,
+  #                            kernel_size=kernel_size,
+   #                           stride=2
+    #                          )
+        
+     #   self.conv2 = nn.Conv2d(in_channels=out_channels,
+      #                        out_channels=out_channels,
+       #                       kernel_size=kernel_size,
+        #                      stride=2
+         #                     )
 
     def forward(self, x):
+#        x = F.relu(self.conv(x))
+ #       x = F.relu(self.conv1(x))
         return F.relu(self.conv(x))
 
 
@@ -44,8 +58,8 @@ class DigitCaps(nn.Module):
     def __init__(self, num_capsules=10, num_routes=32 * 6 * 6, in_channels=8, out_channels=16):
         super(DigitCaps, self).__init__()
 
-        self.in_channels = in_channels
-        self.num_routes = num_routes
+        self.in_channels  = in_channels
+        self.num_routes   = num_routes
         self.num_capsules = num_capsules
 
         self.W = nn.Parameter(torch.randn(1, num_routes, num_capsules, out_channels, in_channels))
@@ -55,6 +69,7 @@ class DigitCaps(nn.Module):
         x = torch.stack([x] * self.num_capsules, dim=2).unsqueeze(4)
 
         W = torch.cat([self.W] * batch_size, dim=0)
+        print(W.shape, x.shape)
         u_hat = torch.matmul(W, x)
 
         b_ij = Variable(torch.zeros(1, self.num_routes, self.num_capsules, 1))
@@ -130,7 +145,12 @@ class CapsNet(nn.Module):
         self.mse_loss = nn.MSELoss()
 
     def forward(self, data):
-        output = self.digit_capsules(self.primary_capsules(self.conv_layer(data)))
+        print(data.shape)
+        x1 = self.conv_layer(data)
+        print(x1.shape)
+        x2 = self.primary_capsules(x1)
+        print(x2.shape)
+        output = self.digit_capsules(x2)
         reconstructions, masked = self.decoder(output, data)
         return output, reconstructions, masked
 
