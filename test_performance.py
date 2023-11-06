@@ -12,7 +12,7 @@ parser.add_argument('--num_workers', default=4, type=int, help='Test Batch Size'
 args = parser.parse_args()
 
 best_acc = 0
-trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers)
+trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers, args.model_type)
 
 config = Config(args.model_type)
 net = model_loader(config)
@@ -27,6 +27,8 @@ print("Test Performance:")
 test(net, testloader, config.model_type, args.device)
 print("Validation Performance:")
 test(net, validloader, config.model_type, args.device)
+print("Train Performance:")
+test(net, trainloader, config.model_type, args.device)
 
 
 

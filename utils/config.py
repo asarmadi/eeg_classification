@@ -55,5 +55,5 @@ class Config:
             self.input_height = self.freq_cut
 
           if model == 'lstm':
-            self.hidden_dim = 2
+            self.hidden_dim = 200
             self.layer_dim  = 2

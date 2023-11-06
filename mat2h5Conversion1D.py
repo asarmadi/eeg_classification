@@ -50,7 +50,6 @@ for subject in config.train_subjects:
                 f_train["subject"][u]  = subject
                 f_train["label"][u]    = condition
                 f_train["trial"][u]    = i_trial
-
                 u += 1
 
 for subject in config.test_subjects:

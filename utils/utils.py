@@ -30,11 +30,11 @@ def test(model, dataloader, model_type, device):
     with torch.no_grad():
         for batch_idx, (inputs, targets) in enumerate(dataloader):
             inputs, targets = inputs.to(device), targets.to(device).reshape(-1,1)
-            if model_type == 'cnn':
-                 outputs = model(inputs)
-            elif model_type == 'capsnet':
+            if model_type == 'capsnet':
                  outputs, reconstructions, masked = model(inputs)
                  onehot_tensor = onehot_encode(targets, device)
+            else:
+                 outputs = model(inputs)
             predicted = outputs.round()
             total += targets.size(0)
             if model_type == 'capsnet':

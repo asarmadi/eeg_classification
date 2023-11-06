@@ -43,17 +43,14 @@ for m in net.modules():
 net.eval()
 
 pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
-print(inputs.shape, pytorch_total_params)
+print(f'Number of Parameters: {pytorch_total_params}')
 optimizer = optim.Adam(net.parameters(), lr=args.lr,  weight_decay=args.wd)
 #optimizer = torch.optim.RMSprop(net.parameters(), lr=args.lr)
 
 cudnn.benchmark = True
 
 criterion = nn.BCELoss()
-#criterion = nn.NLLLoss()
-#criterion = nn.BCELoss()
 scheduler = MultiStepLR(optimizer, milestones=[100,200], gamma=0.1)
-#scheduler = CyclicLR(optimizer, cosine(t_max=len(trainloader) * 2, eta_min=args.lr/100))
 
 def train(epoch):
     net.train()
@@ -63,14 +60,13 @@ def train(epoch):
     for batch_idx, (inputs, targets) in enumerate(trainloader):
         inputs, targets = inputs.to(args.device), targets.to(args.device).reshape(-1,1)
         optimizer.zero_grad()
-        if config.model_type == 'cnn':
-           outputs = net(inputs)
-           loss = criterion(outputs, targets)
-        elif config.model_type == 'capsnet':
+        if config.model_type == 'capsnet':
            outputs, reconstructions, masked = net(inputs)
            #onehot_tensor = onehot_encode(targets, args.device)
            #loss = net.loss(inputs, outputs, onehot_tensor, reconstructions)
-        #loss = criterion(outputs, targets.long())
+        else:
+           outputs = net(inputs)
+        loss = criterion(outputs, targets)
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
