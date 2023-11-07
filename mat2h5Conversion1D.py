@@ -1,12 +1,25 @@
 import h5py
+import argparse
 from utils.config import Config
+from utils.utils import Normalize
 import numpy as np
 
-config = Config(None, None)
+parser = argparse.ArgumentParser(description='Dataset Generator')
+parser.add_argument('--test_sub',  default=1, type=int, help='Test Subject')
+args = parser.parse_args()
+
+config = Config()
+config.test_subjects  = np.array([args.test_sub])
+config.valid_subjects = np.array([args.test_sub])
+config.train_subjects = np.setdiff1d(config.all_subjects, config.test_subjects)
+
+print(f'Test Subjects:  {config.test_subjects}')
+print(f'Valid Subjects: {config.valid_subjects}')
+print(f'Train Subjects: {config.train_subjects}')
 
 n_samples_train = len(config.train_subjects)*config.n_windows*config.n_trial*len(config.conditions)
-n_samples_valid = len(config.valid_subjects)*config.n_windows*config.n_trial*len(config.conditions)
-n_samples_test  = len(config.test_subjects) *config.n_windows*config.n_trial*len(config.conditions)
+n_samples_valid = len(config.valid_subjects)*config.n_windows*(config.n_trial//2)*len(config.conditions)
+n_samples_test  = len(config.test_subjects) *config.n_windows*(config.n_trial//2)*len(config.conditions)
 
 train_shape = (n_samples_train, config.n_timepoints, config.n_channels)
 valid_shape = (n_samples_valid, config.n_timepoints, config.n_channels)
@@ -39,6 +52,19 @@ path = config.file_path + "SF_Obs_MLdata.mat"
 
 f = h5py.File(path,'r')
 
+if config.preprocess_normalize:
+   train_eeg = []
+   for subject in config.train_subjects:
+       for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
+           print(f'subject#: {subject}, condition: {condition}')
+           ref = f["data"][condition][subject]
+           eeg = np.array(f[ref])
+           train_eeg.append(eeg)
+#
+   train_eeg = np.array(train_eeg)
+   train_eeg = np.mean(train_eeg, axis=0)
+   mean, std = np.mean(train_eeg, axis=0), np.std(train_eeg, axis=0)
+
 for subject in config.train_subjects:
     for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
         print(f'Train subject#: {subject}, condition: {condition}')
@@ -46,7 +72,10 @@ for subject in config.train_subjects:
         eeg = np.array(f[ref])
         for i_trial in range(config.n_trial):
             for j_windows in range(config.n_windows):
-                f_train["data"][u,...] = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
+                eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
+                if config.preprocess_normalize:
+                   eeg_norm = Normalize(mean, std, eeg_norm)
+                f_train["data"][u,...] = eeg_norm
                 f_train["subject"][u]  = subject
                 f_train["label"][u]    = condition
                 f_train["trial"][u]    = i_trial
@@ -57,9 +86,12 @@ for subject in config.test_subjects:
         print(f'Test subject#: {subject}, condition: {condition}')
         ref = f["data"][condition][subject]
         eeg = np.array(f[ref])
-        for i_trial in range(config.n_trial):
+        for i_trial in range(0,config.n_trial//2):
             for j_windows in range(config.n_windows):
-                f_test["data"][s,...] = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
+                eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
+                if config.preprocess_normalize:
+                   eeg_norm = Normalize(mean, std, eeg_norm)
+                f_test["data"][s,...] = eeg_norm
                 f_test["subject"][s]  = subject
                 f_test["label"][s]    = condition
                 f_test["trial"][s]    = i_trial
@@ -70,9 +102,12 @@ for subject in config.valid_subjects:
         print(f'Valid subject#: {subject}, condition: {condition}')
         ref = f["data"][condition][subject]
         eeg = np.array(f[ref])
-        for i_trial in range(config.n_trial):
+        for i_trial in range(config.n_trial//2,config.n_trial):
             for j_windows in range(config.n_windows):
-                f_valid["data"][v,...] = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
+                eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
+                if config.preprocess_normalize:
+                   eeg_norm = Normalize(mean, std, eeg_norm)
+                f_valid["data"][v,...] = eeg_norm
                 f_valid["subject"][v]  = subject
                 f_valid["label"][v]    = condition
                 f_valid["trial"][v]    = i_trial

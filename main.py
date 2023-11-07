@@ -10,7 +10,7 @@ from utils.config import Config
 from utils.utils import *
 
 
-parser = argparse.ArgumentParser(description='Backdoor Detection')
+parser = argparse.ArgumentParser(description='EEG Classification')
 parser.add_argument('--device', default='cuda:0',type=str, help='GPU device')
 parser.add_argument('--model_type', default='cnn',type=str, help='cnn, caspnet, lstm')
 parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
@@ -57,7 +57,7 @@ def train(epoch):
     train_loss = 0
     correct = 0
     total = 0
-    for batch_idx, (inputs, targets) in enumerate(trainloader):
+    for batch_idx, (inputs, targets, _) in enumerate(trainloader):
         inputs, targets = inputs.to(args.device), targets.to(args.device).reshape(-1,1)
         optimizer.zero_grad()
         if config.model_type == 'capsnet':
@@ -85,7 +85,7 @@ def train(epoch):
 for epoch in range(1,args.n_epochs):
     print('\nEpoch: {}/{}'.format(epoch,args.n_epochs))
     train(epoch)
-    clean_acc = test(net, validloader, config.model_type, args.device)
+    clean_acc,_ = test(net, validloader, config.model_type, args.device)
     if epoch == 1:
        best_acc = clean_acc
     if (clean_acc >= best_acc):

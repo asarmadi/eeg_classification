@@ -11,6 +11,7 @@ import torch
 from models.cnn_model import Net
 from models.capsnet import CapsNet
 from models.lstm import LSTMClassifier
+from models.cnn_lstm import LSTMConv
 from utils.hdf5_dataset import *
 import numpy as np
 from scipy import signal
@@ -28,7 +29,7 @@ def test(model, dataloader, model_type, device):
     correct = 0
     total = 0
     with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(dataloader):
+        for batch_idx, (inputs, targets, subjects) in enumerate(dataloader):
             inputs, targets = inputs.to(device), targets.to(device).reshape(-1,1)
             if model_type == 'capsnet':
                  outputs, reconstructions, masked = model(inputs)
@@ -46,7 +47,7 @@ def test(model, dataloader, model_type, device):
             progress_bar(batch_idx, len(dataloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
 
         print('Test Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
-        return 100.*correct/total
+        return 100.*correct/total, subjects[0].item()
     
 def count_num_classes(dataloader, label):
     n_all_samples, n_label_samples = 0, 0
@@ -79,9 +80,11 @@ def model_loader(config):
        return CapsNet(config)
     elif config.model_type == 'lstm':
        return LSTMClassifier(config)
+    elif config.model_type == 'cnnlstm':
+       return LSTMConv(config)
 
 def data_loader(batch_size, num_workers, model_type):
-    if model_type == 'lstm':
+    if 'lstm' in model_type:
        trainset = HDF5Dataset('./data/train_1d.h5')
        validset = HDF5Dataset('./data/valid_1d.h5')
        testset  = HDF5Dataset('./data/test_1d.h5')

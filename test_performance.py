@@ -4,7 +4,7 @@ import torch.backends.cudnn as cudnn
 from utils.config import Config
 from utils.utils import *
 
-parser = argparse.ArgumentParser(description='Backdoor Detection')
+parser = argparse.ArgumentParser(description='EEG Classfication Network Testing')
 parser.add_argument('--device', default='cuda:0',type=str, help='GPU device')
 parser.add_argument('--model_type', default='cnn',type=str, help='cnn, caspnet')
 parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
@@ -24,12 +24,16 @@ net.eval()
 cudnn.benchmark = True
 
 print("Test Performance:")
-test(net, testloader, config.model_type, args.device)
+test_acc, target_test  = test(net, testloader, config.model_type, args.device)
 print("Validation Performance:")
-test(net, validloader, config.model_type, args.device)
+valid_acc, target_valid = test(net, validloader, config.model_type, args.device)
 print("Train Performance:")
-test(net, trainloader, config.model_type, args.device)
+train_acc, _ = test(net, trainloader, config.model_type, args.device)
 
+header_name = 'Name,Acc,Target'
+data = [['Train', train_acc, 0], ['Test', test_acc, target_test], ['Valid', valid_acc, target_valid] ]
+
+np.savetxt("./out/test_results_"+str(target_test)+".csv", data, delimiter=",", header=header_name, comments='', fmt="%s")
 
 
 

@@ -12,9 +12,9 @@ class HDF5Dataset(torch.utils.data.Dataset):
         data = h5py.File(self.file_path, 'r',rdcc_nbytes=1024**2*4000,rdcc_nslots=1e7)
         self.dataset = data["data"]
         self.label   = data["label"]
+        self.subject = data["subject"]
 
-        x = self.dataset[index]
-        return (x,self.label[index])
+        return (self.dataset[index],self.label[index],self.subject[index])
 
     def __len__(self):
         return self.dataset_len
