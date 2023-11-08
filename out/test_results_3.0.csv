@@ -1,0 +1,4 @@
+Name,Acc,Target
+Train,100.0,0
+Test,50.0,3.0
+Valid,72.72727272727273,3.0
