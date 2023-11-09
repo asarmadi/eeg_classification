@@ -21,9 +21,11 @@ n_samples_train = len(config.train_subjects)*config.n_windows*config.n_trial*len
 n_samples_valid = len(config.valid_subjects)*config.n_windows*(config.n_trial//2)*len(config.conditions)
 n_samples_test  = len(config.test_subjects) *config.n_windows*(config.n_trial//2)*len(config.conditions)
 
-train_shape = (n_samples_train, config.n_timepoints, config.n_channels)
-valid_shape = (n_samples_valid, config.n_timepoints, config.n_channels)
-test_shape  = (n_samples_test,  config.n_timepoints, config.n_channels)
+print(n_samples_train)
+
+train_shape = (n_samples_train, config.window_len, config.n_channels)
+valid_shape = (n_samples_valid, config.window_len, config.n_channels)
+test_shape  = (n_samples_test,  config.window_len, config.n_channels)
 
 f_train = h5py.File(config.file_path+'train_1d.h5', "w")
 f_train.create_dataset("data", train_shape)

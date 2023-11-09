@@ -16,8 +16,11 @@ trainloader, validloader, testloader = data_loader(args.batch_size, args.num_wor
 
 config = Config(args.model_type)
 net = model_loader(config)
-net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
 net = net.to(args.device)
+#net = torch.nn.DataParallel(net)
+net.load_state_dict(torch.load('./checkpoint/Net.pth'))
+
+#net = net.to(args.device)
 
 net.eval()
 

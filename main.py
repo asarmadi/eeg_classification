@@ -29,7 +29,6 @@ net = model_loader(config)
 #net = torch.nn.DataParallel(net)
 #net = net.module
 net = net.to(args.device)
-'''
 for m in net.modules():
     if isinstance(m, nn.Conv2d):
 #       m.weight.data.normal_(0.0,2/np.sqrt(m.in_channels*m.out_channels*9))
@@ -39,7 +38,6 @@ for m in net.modules():
 #       m.weight.data.normal_(0.0,2/np.sqrt(m.in_features))
        torch.nn.init.eye_(m.weight)
        m.bias.data.fill_(0.0)
-'''
 net.eval()
 
 pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)

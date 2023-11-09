@@ -7,14 +7,14 @@ class Config:
           self.n_conditions = 4   # FF, EF, FT, ET
           self.n_channels   = 56
           self.n_timepoints = 2000
-          self.n_trial      = 22  # For Imaginary it should be 22
+          self.n_trial      = 36  # For Imaginary it should be 22
           self.file_path    = './data/'  # Path to save the h5 files
           self.n_classes    = 1
           self.preprocess_normalize = False
 
           # Each segement
-          self.window_len  = 2000
-          self.window_inc  = 1
+          self.window_len  = 1900
+          self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
           # STFT Hyper-parameters
@@ -55,5 +55,5 @@ class Config:
             self.input_height = self.freq_cut
 
           if 'lstm' in model:
-            self.hidden_dim = 256
+            self.hidden_dim = 128
             self.layer_dim  = 2
