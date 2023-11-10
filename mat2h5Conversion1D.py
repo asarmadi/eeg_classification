@@ -1,17 +1,20 @@
 import h5py
-import argparse
 from utils.config import Config
 from utils.utils import Normalize
 import numpy as np
+import random
 
-parser = argparse.ArgumentParser(description='Dataset Generator')
-parser.add_argument('--test_sub',  default=1, type=int, help='Test Subject')
-args = parser.parse_args()
 
 config = Config()
-config.test_subjects  = np.array([args.test_sub])
-config.valid_subjects = np.array([args.test_sub])
+test_sub, valid_sub = random.choice(config.all_subjects), random.choice(config.all_subjects)
+config.test_subjects  = np.array([test_sub])
+config.valid_subjects = np.array([valid_sub])
 config.train_subjects = np.setdiff1d(config.all_subjects, config.test_subjects)
+config.train_subjects = np.setdiff1d(config.all_subjects, config.valid_subjects)
+
+all_trials   =  np.array(range(0,config.n_trial))
+test_trials  = random.choices(all_trials,k=len(all_trials)//2)
+valid_trials = np.setdiff1d(all_trials, test_trials)
 
 print(f'Test Subjects:  {config.test_subjects}')
 print(f'Valid Subjects: {config.valid_subjects}')
@@ -88,7 +91,7 @@ for subject in config.test_subjects:
         print(f'Test subject#: {subject}, condition: {condition}')
         ref = f["data"][condition][subject]
         eeg = np.array(f[ref])
-        for i_trial in range(0,config.n_trial//2):
+        for i_trial in test_trials:
             for j_windows in range(config.n_windows):
                 eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
                 if config.preprocess_normalize:
@@ -104,7 +107,7 @@ for subject in config.valid_subjects:
         print(f'Valid subject#: {subject}, condition: {condition}')
         ref = f["data"][condition][subject]
         eeg = np.array(f[ref])
-        for i_trial in range(config.n_trial//2,config.n_trial):
+        for i_trial in valid_trials:
             for j_windows in range(config.n_windows):
                 eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
                 if config.preprocess_normalize:
