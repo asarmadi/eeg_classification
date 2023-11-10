@@ -9,7 +9,7 @@ class LSTMConv(nn.Module):
         self.conv_layer2 = nn.Sequential(nn.Conv1d(8*config.n_channels, config.n_channels, kernel_size=11),nn.BatchNorm1d(config.n_channels),nn.ReLU(inplace=True))
         self.conv_layer3 = nn.Sequential(nn.Conv1d(config.n_channels, 8, kernel_size=11),nn.BatchNorm1d(8),nn.ReLU(inplace=True))
 
-        self.rnn = nn.LSTM(config.n_channels, config.hidden_dim, config.layer_dim, batch_first=True, dropout=0.1)
+        self.rnn = nn.LSTM(config.n_channels, config.hidden_dim, config.layer_dim, batch_first=True, dropout=0.5)
 
         self.avgpool = nn.AvgPool2d(2,stride=2)
 

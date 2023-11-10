@@ -12,6 +12,7 @@ from models.cnn_model import Net
 from models.capsnet import CapsNet
 from models.lstm import LSTMClassifier
 from models.cnn_lstm import LSTMConv
+from models.cnn_1d import Conv1D
 from utils.hdf5_dataset import *
 import numpy as np
 from scipy import signal
@@ -82,9 +83,11 @@ def model_loader(config):
        return LSTMClassifier(config)
     elif config.model_type == 'cnnlstm':
        return LSTMConv(config)
+    elif config.model_type == 'cnn1d':
+       return Conv1D(config)
 
 def data_loader(batch_size, num_workers, model_type):
-    if 'lstm' in model_type:
+    if 'lstm' in model_type or '1d' in model_type:
        trainset = HDF5Dataset('./data/train_1d.h5')
        validset = HDF5Dataset('./data/valid_1d.h5')
        testset  = HDF5Dataset('./data/test_1d.h5')
