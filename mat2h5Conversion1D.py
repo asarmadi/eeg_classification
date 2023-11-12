@@ -4,12 +4,13 @@ from utils.utils import Normalize
 import numpy as np
 import random
 
-
 config = Config()
-test_sub, valid_sub = random.choice(config.all_subjects), random.choice(config.all_subjects)
+test_sub = random.choice(config.all_subjects)
 config.test_subjects  = np.array([test_sub])
-config.valid_subjects = np.array([valid_sub])
 config.train_subjects = np.setdiff1d(config.all_subjects, config.test_subjects)
+
+valid_sub = random.choice(config.train_subjects)
+config.valid_subjects = np.array([valid_sub])
 config.train_subjects = np.setdiff1d(config.all_subjects, config.valid_subjects)
 
 all_trials   =  np.array(range(0,config.n_trial))
@@ -21,8 +22,8 @@ print(f'Valid Subjects: {config.valid_subjects}')
 print(f'Train Subjects: {config.train_subjects}')
 
 n_samples_train = len(config.train_subjects)*config.n_windows*config.n_trial*len(config.conditions)
-n_samples_valid = len(config.valid_subjects)*config.n_windows*(config.n_trial//2)*len(config.conditions)
-n_samples_test  = len(config.test_subjects) *config.n_windows*(config.n_trial//2)*len(config.conditions)
+n_samples_valid = len(config.valid_subjects)*config.n_windows*len(valid_trials)*len(config.conditions)
+n_samples_test  = len(config.test_subjects) *config.n_windows*len(test_trials)*len(config.conditions)
 
 print(n_samples_train)
 
@@ -31,23 +32,23 @@ valid_shape = (n_samples_valid, config.window_len, config.n_channels)
 test_shape  = (n_samples_test,  config.window_len, config.n_channels)
 
 f_train = h5py.File(config.file_path+'train_1d.h5', "w")
-f_train.create_dataset("data", train_shape)
-f_train.create_dataset("label", (n_samples_train,))
+f_train.create_dataset("data",    train_shape)
+f_train.create_dataset("label",   (n_samples_train,))
 f_train.create_dataset("subject", (n_samples_train,))
-f_train.create_dataset("trial", (n_samples_train,))
+f_train.create_dataset("trial",   (n_samples_train,))
 
 f_test = h5py.File(config.file_path+'test_1d.h5', "w")
-f_test.create_dataset("data", test_shape)
-f_test.create_dataset("label", (n_samples_test,))
+f_test.create_dataset("data",    test_shape)
+f_test.create_dataset("label",   (n_samples_test,))
 f_test.create_dataset("subject", (n_samples_test,))
-f_test.create_dataset("trial", (n_samples_test,))
+f_test.create_dataset("trial",   (n_samples_test,))
 
 
 f_valid = h5py.File(config.file_path+'valid_1d.h5', "w")
-f_valid.create_dataset("data", valid_shape)
-f_valid.create_dataset("label", (n_samples_valid,))
+f_valid.create_dataset("data",    valid_shape)
+f_valid.create_dataset("label",   (n_samples_valid,))
 f_valid.create_dataset("subject", (n_samples_valid,))
-f_valid.create_dataset("trial", (n_samples_valid,))
+f_valid.create_dataset("trial",   (n_samples_valid,))
 
 u = 0
 s = 0    # sth sample in test set
