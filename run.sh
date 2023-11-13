@@ -10,7 +10,7 @@ MODEL_TYPE=cnn1d
 
 #python mat2h5Conversion1D.py
 
-#python main.py --lr ${LR} --batch_size ${BATCH_SIZE} --wd ${WD} --model_type ${MODEL_TYPE} --n_epochs ${NEPOCHS}
+python main.py --lr ${LR} --batch_size ${BATCH_SIZE} --wd ${WD} --model_type ${MODEL_TYPE} --n_epochs ${NEPOCHS}
 
-python test_performance.py --model_type ${MODEL_TYPE} --batch_size ${BATCH_SIZE}
+#python test_performance.py --model_type ${MODEL_TYPE} --batch_size ${BATCH_SIZE}
 #done

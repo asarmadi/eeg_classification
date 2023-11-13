@@ -74,7 +74,7 @@ def onehot_encode(labels, device):
     onehot_tensor = onehot_tensor.to(device)
     return onehot_tensor
 
-def model_loader(config):
+def model_loader(config, kernel_size):
     if config.model_type == 'cnn':
        return Net(config)
     elif config.model_type == 'capsnet':
@@ -84,13 +84,13 @@ def model_loader(config):
     elif config.model_type == 'cnnlstm':
        return LSTMConv(config)
     elif config.model_type == 'cnn1d':
-       return Conv1D(config)
+       return Conv1D(config, kernel_size)
 
 def data_loader(batch_size, num_workers, model_type):
     if 'lstm' in model_type or '1d' in model_type:
-       trainset = HDF5Dataset('./data/train_1d.h5')
-       validset = HDF5Dataset('./data/valid_1d.h5')
-       testset  = HDF5Dataset('./data/test_1d.h5')
+       trainset = HDF5Dataset('../../data/train_1d.h5')
+       validset = HDF5Dataset('../../data/valid_1d.h5')
+       testset  = HDF5Dataset('../../data/test_1d.h5')
     else:
        trainset = HDF5Dataset('./data/train_2d.h5')
        validset = HDF5Dataset('./data/valid_2d.h5')

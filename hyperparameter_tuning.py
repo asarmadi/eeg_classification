@@ -7,9 +7,8 @@ from utils.config import Config
 from utils.utils import *
 
 from ray import train, tune
+from ray.train import RunConfig
 from ray.tune.schedulers import ASHAScheduler
-from hyperopt import hp
-from ray.tune.search.hyperopt import HyperOptSearch
 
 parser = argparse.ArgumentParser(description='EEG Classification')
 parser.add_argument('--model_type', default='cnn1d',type=str, help='cnn, caspnet, lstm')
@@ -37,7 +36,7 @@ def test_func(model, data_loader):
     correct = 0
     total = 0
     with torch.no_grad():
-        for batch_idx, (data, target) in enumerate(data_loader):
+        for batch_idx, (data, target,_) in enumerate(data_loader):
             data, target = data.to(device), target.to(device)
             outputs = model(data)
             predicted = outputs.round()
@@ -52,11 +51,11 @@ def train_eeg(config):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    model = model_loader(configGeneral)
+    model = model_loader(configGeneral, config["kern"])
     model.to(device)
 
-    optimizer = optim.SGD(
-        model.parameters(), lr=config["lr"], momentum=config["momentum"])
+    optimizer = optim.Adam(
+        model.parameters(), lr=config["lr"], weight_decay=config["wd"])
     for i in range(10):
         train_func(model, optimizer, train_loader)
         acc = test_func(model, test_loader)
@@ -66,23 +65,22 @@ def train_eeg(config):
 
         if i % 5 == 0:
             # This saves the model to the trial directory
-            torch.save(model.state_dict(), "./checkpoint/model.pth")
+            torch.save(model.state_dict(), "./model.pth")
 
-space = {
-    "lr": hp.loguniform("lr", -10, -1),
-    "momentum": hp.uniform("momentum", 0.1, 0.9),
-}
+config = {
+        "lr": tune.loguniform(1e-5, 1e-1),
+        "wd": tune.loguniform(1e-5, 1e-1),
+        "kern": tune.sample_from(lambda _: (2 * np.random.randint(2, 20)-1)),
+    }
 
-hyperopt_search = HyperOptSearch(space, metric="mean_accuracy", mode="max")
 
 tuner = tune.Tuner(
-    train_eeg,
+    tune.with_resources(train_eeg, {"gpu": 1}),
     tune_config=tune.TuneConfig(
         num_samples=20,
-        search_alg=hyperopt_search,
         scheduler=ASHAScheduler(metric="mean_accuracy", mode="max"),
     ),
-#    param_space=search_space,
+    param_space=config,
 )
 results = tuner.fit()
 
