@@ -110,7 +110,7 @@ tuner = tune.Tuner(
     tune_config=tune.TuneConfig(
         num_samples=20,
         search_alg=hyperopt_search,
-#        scheduler=ASHAScheduler(metric="mean_accuracy", mode="max"),
+        scheduler=ASHAScheduler(metric="mean_accuracy", mode="max"),
     ),
 #    param_space=search_space,
 )
