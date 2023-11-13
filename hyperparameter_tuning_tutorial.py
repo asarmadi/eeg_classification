@@ -96,59 +96,27 @@ def train_mnist(config):
             # This saves the model to the trial directory
             torch.save(model.state_dict(), "./model.pth")
 
-search_space = {
-    "lr": tune.sample_from(lambda spec: 10 ** (-10 * np.random.rand())),
-    "momentum": tune.uniform(0.1, 0.9),
-}
-
-# Uncomment this to enable distributed execution
-# `ray.init(address="auto")`
-
-# Download the dataset first
-datasets.MNIST("~/data", train=True, download=True)
-
-tuner = tune.Tuner(
-    train_mnist,
-    param_space=search_space,
-)
-results = tuner.fit()
-
-dfs = {result.path: result.metrics_dataframe for result in results}
-[d.mean_accuracy.plot() for d in dfs.values()]
-
-tuner = tune.Tuner(
-    train_mnist,
-    tune_config=tune.TuneConfig(
-        num_samples=20,
-        scheduler=ASHAScheduler(metric="mean_accuracy", mode="max"),
-    ),
-    param_space=search_space,
-)
-results = tuner.fit()
-
-# Obtain a trial dataframe from all run trials of this `tune.run` call.
-dfs = {result.path: result.metrics_dataframe for result in results}
-
-# Plot by epoch
-ax = None  # This plots everything on the same plot
-for d in dfs.values():
-    ax = d.mean_accuracy.plot(ax=ax, legend=False)
-
 space = {
     "lr": hp.loguniform("lr", -10, -1),
     "momentum": hp.uniform("momentum", 0.1, 0.9),
 }
+
+datasets.MNIST("~/data", train=True, download=True)
 
 hyperopt_search = HyperOptSearch(space, metric="mean_accuracy", mode="max")
 
 tuner = tune.Tuner(
     train_mnist,
     tune_config=tune.TuneConfig(
-        num_samples=10,
+        num_samples=20,
         search_alg=hyperopt_search,
+#        scheduler=ASHAScheduler(metric="mean_accuracy", mode="max"),
     ),
+#    param_space=search_space,
 )
 results = tuner.fit()
+
+print(results.get_best_result("mean_accuracy", mode="max"))
 
 # To enable GPUs, use this instead:
 # analysis = tune.run(
