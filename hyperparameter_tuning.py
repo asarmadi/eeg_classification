@@ -1,49 +1,35 @@
-import numpy as np
+import argparse
 import torch
 import torch.optim as optim
 import torch.nn as nn
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
-import torch.nn.functional as F
+from torchvision import datasets
+from utils.config import Config
+from utils.utils import *
 
 from ray import train, tune
 from ray.tune.schedulers import ASHAScheduler
 from hyperopt import hp
 from ray.tune.search.hyperopt import HyperOptSearch
 
-class ConvNet(nn.Module):
-    def __init__(self):
-        super(ConvNet, self).__init__()
-        # In this example, we don't change the model architecture
-        # due to simplicity.
-        self.conv1 = nn.Conv2d(1, 3, kernel_size=3)
-        self.fc = nn.Linear(192, 10)
+parser = argparse.ArgumentParser(description='EEG Classification')
+parser.add_argument('--model_type', default='cnn1d',type=str, help='cnn, caspnet, lstm')
+parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
+parser.add_argument('--n_epochs', default=500, type=int, help='Number of epochs')
+args = parser.parse_args()
 
-    def forward(self, x):
-        x = F.relu(F.max_pool2d(self.conv1(x), 3))
-        x = x.view(-1, 192)
-        x = self.fc(x)
-        return F.log_softmax(x, dim=1)
-    
-
-# Change these values if you want the training to run quicker or slower.
-EPOCH_SIZE = 512
-TEST_SIZE = 256
+configGeneral = Config(args.model_type)
 
 def train_func(model, optimizer, train_loader):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.train()
-    for batch_idx, (data, target) in enumerate(train_loader):
-        # We set this just for the example to run quickly.
-        if batch_idx * len(data) > EPOCH_SIZE:
-            return
-        data, target = data.to(device), target.to(device)
+    criterion = nn.BCELoss()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    for batch_idx, (inputs, targets, _) in enumerate(train_loader):
+        inputs, targets = inputs.to(device), targets.to(device).reshape(-1,1)
         optimizer.zero_grad()
-        output = model(data)
-        loss = F.nll_loss(output, target)
+        outputs = model(inputs)
+        loss = criterion(outputs, targets)
         loss.backward()
         optimizer.step()
-
 
 def test_func(model, data_loader):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -52,35 +38,21 @@ def test_func(model, data_loader):
     total = 0
     with torch.no_grad():
         for batch_idx, (data, target) in enumerate(data_loader):
-            # We set this just for the example to run quickly.
-            if batch_idx * len(data) > TEST_SIZE:
-                break
             data, target = data.to(device), target.to(device)
             outputs = model(data)
-            _, predicted = torch.max(outputs.data, 1)
+            predicted = outputs.round()
             total += target.size(0)
             correct += (predicted == target).sum().item()
 
     return correct / total
 
-def train_mnist(config):
+def train_eeg(config):
     # Data Setup
-    mnist_transforms = transforms.Compose(
-        [transforms.ToTensor(),
-         transforms.Normalize((0.1307, ), (0.3081, ))])
-
-    train_loader = DataLoader(
-        datasets.MNIST("~/data", train=True, download=True, transform=mnist_transforms),
-        batch_size=64,
-        shuffle=True)
-    test_loader = DataLoader(
-        datasets.MNIST("~/data", train=False, transform=mnist_transforms),
-        batch_size=64,
-        shuffle=True)
+    train_loader, test_loader, _ = data_loader(64, 4, args.model_type)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    model = ConvNet()
+    model = model_loader(configGeneral)
     model.to(device)
 
     optimizer = optim.SGD(
@@ -94,19 +66,17 @@ def train_mnist(config):
 
         if i % 5 == 0:
             # This saves the model to the trial directory
-            torch.save(model.state_dict(), "./model.pth")
+            torch.save(model.state_dict(), "./checkpoint/model.pth")
 
 space = {
     "lr": hp.loguniform("lr", -10, -1),
     "momentum": hp.uniform("momentum", 0.1, 0.9),
 }
 
-datasets.MNIST("~/data", train=True, download=True)
-
 hyperopt_search = HyperOptSearch(space, metric="mean_accuracy", mode="max")
 
 tuner = tune.Tuner(
-    train_mnist,
+    train_eeg,
     tune_config=tune.TuneConfig(
         num_samples=20,
         search_alg=hyperopt_search,

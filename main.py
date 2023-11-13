@@ -52,7 +52,7 @@ cudnn.benchmark = True
 criterion = nn.BCELoss()
 scheduler = MultiStepLR(optimizer, milestones=[100,200], gamma=0.1)
 
-def train(epoch):
+def train():
     net.train()
     train_loss = 0
     correct = 0
@@ -84,7 +84,7 @@ def train(epoch):
 
 for epoch in range(1,args.n_epochs):
     print('\nEpoch: {}/{}'.format(epoch,args.n_epochs))
-    train(epoch)
+    train()
     clean_acc,_ = test(net, validloader, config.model_type, args.device)
     if epoch == 1:
        best_acc = clean_acc
