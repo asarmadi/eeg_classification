@@ -12,8 +12,6 @@ from ray.tune.schedulers import ASHAScheduler
 
 parser = argparse.ArgumentParser(description='EEG Classification')
 parser.add_argument('--model_type', default='cnn1d',type=str, help='cnn, caspnet, lstm')
-parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
-parser.add_argument('--n_epochs', default=500, type=int, help='Number of epochs')
 args = parser.parse_args()
 
 configGeneral = Config(args.model_type)
@@ -47,7 +45,7 @@ def test_func(model, data_loader):
 
 def train_eeg(config):
     # Data Setup
-    train_loader, test_loader, _ = data_loader(64, 4, args.model_type)
+    train_loader, test_loader, _ = data_loader(config["batch_size"], 4, args.model_type)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -68,9 +66,10 @@ def train_eeg(config):
             torch.save(model.state_dict(), "./model.pth")
 
 config = {
-        "lr": tune.loguniform(1e-5, 1e-1),
+        "lr": tune.loguniform(1e-6, 1),
         "wd": tune.loguniform(1e-5, 1e-1),
-        "kern": tune.sample_from(lambda _: (2 * np.random.randint(2, 20)-1)),
+        "kern": tune.choice([3,5,11,21,31,41,51,61,101,201,301]),
+        "batch_size": tune.choice([8, 16, 32, 64, 128])
     }
 
 

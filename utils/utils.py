@@ -48,7 +48,7 @@ def test(model, dataloader, model_type, device):
             progress_bar(batch_idx, len(dataloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
 
         print('Test Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
-        return 100.*correct/total, subjects[0].item()
+        return 100.*correct/total, subjects.unique().numpy()
     
 def count_num_classes(dataloader, label):
     n_all_samples, n_label_samples = 0, 0
@@ -88,17 +88,17 @@ def model_loader(config, kernel_size):
 
 def data_loader(batch_size, num_workers, model_type):
     if 'lstm' in model_type or '1d' in model_type:
-       trainset = HDF5Dataset('../../data/train_1d.h5')
-       validset = HDF5Dataset('../../data/valid_1d.h5')
-       testset  = HDF5Dataset('../../data/test_1d.h5')
+       trainset = HDF5Dataset('./data/train_1d.h5')
+       validset = HDF5Dataset('./data/valid_1d.h5')
+       testset  = HDF5Dataset('./data/test_1d.h5')
     else:
        trainset = HDF5Dataset('./data/train_2d.h5')
        validset = HDF5Dataset('./data/valid_2d.h5')
        testset  = HDF5Dataset('./data/test_2d.h5')
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=False)
-    validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=False)
-    testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=False)
+    validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)
+    testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)
 
     return trainloader, validloader, testloader
 

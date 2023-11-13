@@ -24,7 +24,7 @@ best_acc = 0
 trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.model_type)
 
 config = Config(args.model_type)
-net = model_loader(config)
+net = model_loader(config,21)
 #net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
 #net = torch.nn.DataParallel(net)
 #net = net.module

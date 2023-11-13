@@ -13,7 +13,7 @@ class Config:
           self.preprocess_normalize = False
 
           # Each segement
-          self.window_len  = 1900
+          self.window_len  = 1800
           self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 

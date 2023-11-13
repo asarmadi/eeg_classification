@@ -15,7 +15,7 @@ best_acc = 0
 trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers, args.model_type)
 
 config = Config(args.model_type)
-net = model_loader(config)
+net = model_loader(config, 21)
 net = net.to(args.device)
 #net = torch.nn.DataParallel(net)
 net.load_state_dict(torch.load('./checkpoint/Net.pth'))
@@ -38,7 +38,7 @@ train_acc, _ = test(net, trainloader, config.model_type, args.device)
 header_name = 'Name,Acc,Target'
 data = [['Train', train_acc, 0], ['Test', test_acc, target_test], ['Valid', valid_acc, target_valid] ]
 
-np.savetxt("./out/test_results_"+str(target_test)+".csv", data, delimiter=",", header=header_name, comments='', fmt="%s")
+np.savetxt("./out/test_results_"+str(target_test[0])+".csv", data, delimiter=",", header=header_name, comments='', fmt="%s")
 
 
 
