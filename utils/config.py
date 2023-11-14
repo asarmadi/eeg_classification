@@ -19,9 +19,9 @@ class Config:
 
           # STFT Hyper-parameters
           self.fs          = 1000
-          self.nperseg     = 1100
-          self.noverlap    = 990
-          self.freq_cut    = 21
+          self.nperseg     = 1400
+          self.noverlap    = 1380
+          self.freq_cut    = 101
 #          self.nTimeBins   = 2*(self.window_len - self.nperseg) // (self.nperseg - self.noverlap) + 1
           self.nTimeBins   = 18
     
