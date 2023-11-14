@@ -1,9 +1,22 @@
+import random
 import h5py
 from utils.config import Config
 import numpy as np
 from utils.utils import spectrogram_per_channel, Normalize
 
-config = Config(None, None)
+config = Config()
+test_sub = random.choice(config.all_subjects)
+config.test_subjects  = np.array([test_sub])
+config.train_subjects = np.setdiff1d(config.all_subjects, config.test_subjects)
+
+valid_sub = np.random.choice(config.train_subjects,3,replace=False)
+config.valid_subjects = np.array(valid_sub)
+config.train_subjects = np.setdiff1d(config.train_subjects, config.valid_subjects)
+
+all_trials   =  np.array(range(0,config.n_trial))
+test_trials  = all_trials
+valid_trials = all_trials
+
 
 n_samples_train = len(config.train_subjects)*config.n_windows*config.n_trial*len(config.conditions)
 n_samples_valid = len(config.valid_subjects)*config.n_windows*config.n_trial*len(config.conditions)
@@ -60,10 +73,12 @@ for subject in config.train_subjects:
         print(f'Train subject#: {subject}, condition: {condition}')
         ref = f["data"][condition][subject]
         eeg = np.array(f[ref])
-#        eeg = Normalize(mean, std, eeg)
         for i_trial in range(config.n_trial):
             for j_windows in range(config.n_windows):
-                Sxx = spectrogram_per_channel(eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:], config)
+                eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
+                if config.preprocess_normalize:
+                   eeg_norm = Normalize(mean, std, eeg_norm)
+                Sxx = spectrogram_per_channel(eeg_norm, config)
                 f_train["data"][u,...] = Sxx
                 f_train["subject"][u]  = subject
                 f_train["label"][u]    = condition
@@ -75,10 +90,12 @@ for subject in config.test_subjects:
         print(f'Test subject#: {subject}, condition: {condition}')
         ref = f["data"][condition][subject]
         eeg = np.array(f[ref])
- #       eeg = Normalize(mean, std, eeg)
         for i_trial in range(config.n_trial):
             for j_windows in range(config.n_windows):
-                Sxx = spectrogram_per_channel(eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:], config)
+                eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
+                if config.preprocess_normalize:
+                   eeg_norm = Normalize(mean, std, eeg_norm)
+                Sxx = spectrogram_per_channel(eeg_norm, config)
                 f_test["data"][s,...] = Sxx
                 f_test["subject"][s]  = subject
                 f_test["label"][s]    = condition
@@ -90,10 +107,12 @@ for subject in config.valid_subjects:
         print(f'Valid subject#: {subject}, condition: {condition}')
         ref = f["data"][condition][subject]
         eeg = np.array(f[ref])
-  #      eeg = Normalize(mean, std, eeg)
         for i_trial in range(config.n_trial):
             for j_windows in range(config.n_windows):
-                Sxx = spectrogram_per_channel(eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:], config)
+                eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
+                if config.preprocess_normalize:
+                   eeg_norm = Normalize(mean, std, eeg_norm)
+                Sxx = spectrogram_per_channel(eeg_norm, config)
                 f_valid["data"][v,...] = Sxx
                 f_valid["subject"][v]  = subject
                 f_valid["label"][v]    = condition

@@ -11,7 +11,7 @@ config.train_subjects = np.setdiff1d(config.all_subjects, config.test_subjects)
 
 valid_sub = np.random.choice(config.train_subjects,3,replace=False)
 config.valid_subjects = np.array(valid_sub)
-config.train_subjects = np.setdiff1d(config.all_subjects, config.valid_subjects)
+config.train_subjects = np.setdiff1d(config.train_subjects, config.valid_subjects)
 
 all_trials   =  np.array(range(0,config.n_trial))
 test_trials  = all_trials
