@@ -13,17 +13,17 @@ class Config:
           self.preprocess_normalize = False
 
           # Each segement
-          self.window_len  = 1800
+          self.window_len  = 1500
           self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
           # STFT Hyper-parameters
           self.fs          = 1000
-          self.nperseg     = 1400
-          self.noverlap    = 1380
-          self.freq_cut    = 101
+          self.nperseg     = 1600
+          self.noverlap    = 1560
+          self.freq_cut    = 51
 #          self.nTimeBins   = 2*(self.window_len - self.nperseg) // (self.nperseg - self.noverlap) + 1
-          self.nTimeBins   = 18
+          self.nTimeBins   = 46
     
           # Bad Subjects: [0,5,10,11,18]
           self.train_subjects  = []

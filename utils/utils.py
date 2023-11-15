@@ -13,6 +13,7 @@ from models.capsnet import CapsNet
 from models.lstm import LSTMClassifier
 from models.cnn_lstm import LSTMConv
 from models.cnn_1d import Conv1D
+from braindecode.models import ShallowFBCSPNet
 from utils.hdf5_dataset import *
 import numpy as np
 from scipy import signal
@@ -76,18 +77,20 @@ def onehot_encode(labels, device):
 
 def model_loader(config, kernel_size):
     if config.model_type == 'cnn':
-       return Net(config)
+       return Net(config, kernel_size)
     elif config.model_type == 'capsnet':
        return CapsNet(config)
     elif config.model_type == 'lstm':
        return LSTMClassifier(config)
     elif config.model_type == 'cnnlstm':
-       return LSTMConv(config)
+       return LSTMConv(config,kernel_size)
     elif config.model_type == 'cnn1d':
        return Conv1D(config, kernel_size)
+    elif config.model_type == 'brainC':
+       return ShallowFBCSPNet(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
 
 def data_loader(batch_size, num_workers, model_type):
-    if 'lstm' in model_type or '1d' in model_type:
+    if 'lstm' in model_type or '1d' in model_type or model_type=='brainC':
        trainset = HDF5Dataset('./data/train_1d.h5')
        validset = HDF5Dataset('./data/valid_1d.h5')
        testset  = HDF5Dataset('./data/test_1d.h5')

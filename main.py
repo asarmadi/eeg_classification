@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(description='EEG Classification')
 parser.add_argument('--device', default='cuda:0',type=str, help='GPU device')
 parser.add_argument('--model_type', default='cnn',type=str, help='cnn, caspnet, lstm')
 parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
+parser.add_argument('--kernel_size', default=32, type=int, help='Model Kernel Size')
 parser.add_argument('--n_epochs', default=500, type=int, help='Number of epochs')
 parser.add_argument('--num_workers', default=4, type=int, help='Test Batch Size')
 parser.add_argument('--lr', default=0.001,type=float,help='Learning Rate')
@@ -24,7 +25,7 @@ best_acc = 0
 trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.model_type)
 
 config = Config(args.model_type)
-net = model_loader(config,21)
+net = model_loader(config,args.kernel_size)
 #net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
 #net = torch.nn.DataParallel(net)
 #net = net.module

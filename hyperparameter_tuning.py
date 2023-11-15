@@ -68,7 +68,7 @@ def train_eeg(config):
 config = {
         "lr": tune.loguniform(1e-6, 1),
         "wd": tune.loguniform(1e-5, 1e-1),
-        "kern": tune.choice([3,5,11,21,31,41,51,61,101,201,301]),
+        "kern": tune.choice([2,3,5,9,11,21,31,101]),
         "batch_size": tune.choice([8, 16, 32, 64, 128])
     }
 

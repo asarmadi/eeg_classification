@@ -21,6 +21,7 @@ valid_trials = all_trials
 n_samples_train = len(config.train_subjects)*config.n_windows*config.n_trial*len(config.conditions)
 n_samples_valid = len(config.valid_subjects)*config.n_windows*config.n_trial*len(config.conditions)
 n_samples_test  = len(config.test_subjects) *config.n_windows*config.n_trial*len(config.conditions)
+print(n_samples_train,n_samples_valid)
 
 train_shape = (n_samples_train, config.n_channels, config.freq_cut, config.nTimeBins)
 valid_shape = (n_samples_valid, config.n_channels, config.freq_cut, config.nTimeBins)

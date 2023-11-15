@@ -29,9 +29,9 @@ n_samples_test  = len(config.test_subjects) *config.n_windows*len(test_trials)*l
 
 print(n_samples_train)
 
-train_shape = (n_samples_train, config.window_len, config.n_channels)
-valid_shape = (n_samples_valid, config.window_len, config.n_channels)
-test_shape  = (n_samples_test,  config.window_len, config.n_channels)
+train_shape = (n_samples_train, config.n_channels, config.window_len)
+valid_shape = (n_samples_valid, config.n_channels, config.window_len)
+test_shape  = (n_samples_test,  config.n_channels, config.window_len)
 
 f_train = h5py.File(config.file_path+'train_1d.h5', "w")
 f_train.create_dataset("data",    train_shape)
@@ -83,7 +83,7 @@ for subject in config.train_subjects:
                 eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
                 if config.preprocess_normalize:
                    eeg_norm = Normalize(mean, std, eeg_norm)
-                f_train["data"][u,...] = eeg_norm
+                f_train["data"][u,...] = eeg_norm.transpose()
                 f_train["subject"][u]  = subject
                 f_train["label"][u]    = condition
                 f_train["trial"][u]    = i_trial
@@ -99,7 +99,7 @@ for subject in config.test_subjects:
                 eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
                 if config.preprocess_normalize:
                    eeg_norm = Normalize(mean, std, eeg_norm)
-                f_test["data"][s,...] = eeg_norm
+                f_test["data"][s,...] = eeg_norm.transpose()
                 f_test["subject"][s]  = subject
                 f_test["label"][s]    = condition
                 f_test["trial"][s]    = i_trial
@@ -115,7 +115,7 @@ for subject in config.valid_subjects:
                 eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
                 if config.preprocess_normalize:
                    eeg_norm = Normalize(mean, std, eeg_norm)
-                f_valid["data"][v,...] = eeg_norm
+                f_valid["data"][v,...] = eeg_norm.transpose()
                 f_valid["subject"][v]  = subject
                 f_valid["label"][v]    = condition
                 f_valid["trial"][v]    = i_trial
