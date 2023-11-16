@@ -25,6 +25,7 @@ best_acc = 0
 trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.model_type)
 
 config = Config(args.model_type)
+config.device = args.device
 net = model_loader(config,args.kernel_size)
 #net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
 #net = torch.nn.DataParallel(net)
@@ -86,10 +87,12 @@ def train():
 for epoch in range(1,args.n_epochs):
     print('\nEpoch: {}/{}'.format(epoch,args.n_epochs))
     train()
+
     clean_acc,_ = test(net, validloader, config.model_type, args.device)
     if epoch == 1:
        best_acc = clean_acc
     if (clean_acc >= best_acc):
+#    if epoch%10==0:
        print('Saving..')
        torch.save(net.state_dict(), './checkpoint/Net.pth')
        best_acc = clean_acc

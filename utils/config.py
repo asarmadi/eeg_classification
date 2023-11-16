@@ -10,7 +10,8 @@ class Config:
           self.n_trial      = 36  # For Imaginary it should be 22
           self.file_path    = './data/'  # Path to save the h5 files
           self.n_classes    = 1
-          self.preprocess_normalize = False
+          self.preprocess_normalize = True
+          self.device       = 'cuda:0'
 
           # Each segement
           self.window_len  = 1500
@@ -56,5 +57,5 @@ class Config:
             self.input_height = self.freq_cut
 
           if 'lstm' in model:
-            self.hidden_dim = 256
+            self.hidden_dim = 128
             self.layer_dim  = 2

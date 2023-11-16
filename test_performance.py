@@ -16,6 +16,7 @@ best_acc = 0
 trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers, args.model_type)
 
 config = Config(args.model_type)
+config.device=args.device
 net = model_loader(config, args.kernel_size)
 net = net.to(args.device)
 #net = torch.nn.DataParallel(net)

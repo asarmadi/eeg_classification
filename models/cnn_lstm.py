@@ -1,14 +1,18 @@
 import torch
 import torch.nn as nn
+from torch.autograd import Variable
 
 class LSTMConv(nn.Module):
 
     def __init__(self, config, kernel_size):
         super(LSTMConv, self).__init__()
-        self.rnn = nn.LSTM(config.window_len, config.hidden_dim, config.layer_dim, batch_first=True, dropout=0.1)
-        h_shape = config.hidden_dim
+        self.num_layers  = config.layer_dim
+        self.hidden_size = config.hidden_dim
+        self.device      = config.device
+        self.lstm = nn.LSTM(config.n_channels, config.hidden_dim, config.layer_dim, batch_first=True, dropout=0.1)
+        h_shape = config.window_len
 
-        self.conv_layer1 = nn.Sequential(nn.Conv1d(config.n_channels, 8, kernel_size=kernel_size),nn.AvgPool2d(2),nn.ReLU(inplace=True))
+        self.conv_layer1 = nn.Sequential(nn.Conv1d(config.hidden_dim, 8, kernel_size=kernel_size),nn.AvgPool2d(2),nn.ReLU(inplace=True))
         h_shape = (h_shape - kernel_size + 1)//2
 
         self.conv_layer2 = nn.Sequential(nn.Conv1d(4, 8, kernel_size=kernel_size),nn.AvgPool2d(2),nn.ReLU(inplace=True))
@@ -17,17 +21,25 @@ class LSTMConv(nn.Module):
         self.conv_layer3 = nn.Sequential(nn.Conv1d(4, 8, kernel_size=kernel_size),nn.AvgPool2d(2),nn.ReLU(inplace=True))
         h_shape = (h_shape-kernel_size+1)//2
 
-        self.avgpool = nn.AvgPool2d(2,stride=2)
-
-        self.fc1 = nn.Linear(4*h_shape, config.n_classes)
+        self.fc1 = nn.Linear(4*h_shape, 128)
+        self.fc2 = nn.Linear(128, config.n_classes)
         self.sigmoid = nn.Sigmoid()
+        self.relu    = nn.ReLU()
 
     def forward(self, x):
-        out,_ = self.rnn(x)
+        h_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self.device) #hidden state
+        c_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self.device) #internal state
+        # Propagate input through LSTM
+        output, (hn, cn) = self.lstm(x, (h_0, c_0)) #lstm with input, hidden, and internal state
+#        hn = hn.reshape(-1, self.num_layers*self.hidden_size) #reshaping the data for Dense layer next
+
+        out = self.relu(output)
+        out = out.permute(0,2,1)
         out = self.conv_layer1(out)
         out = self.conv_layer2(out)
         out = self.conv_layer3(out)
         out = out.reshape(-1, out.shape[1]*out.shape[2])
-        out = self.sigmoid(self.fc1(out))
+        out = self.relu(self.fc1(out))
+        out = self.sigmoid(self.fc2(out))
         return out
 
