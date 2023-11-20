@@ -45,6 +45,9 @@ def generate_data(data_type):
     f_data.create_dataset("label",   (n_samples,))
     f_data.create_dataset("subject", (n_samples,))
     f_data.create_dataset("trial",   (n_samples,))
+
+    f = h5py.File(path,'r')
+
     for subject in subjects_list:
         for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
             print(f'{data_type} subject#: {subject}, condition: {condition}')
@@ -52,7 +55,7 @@ def generate_data(data_type):
             eeg = np.array(f[ref])
             for i_trial in range(config.n_trial):
                 eeg_scaled = eeg[i_trial,:,:]
-                eeg_scaled = preprocess_signal(eeg_scaled)
+                eeg_scaled = preprocess_signal(config,eeg_scaled)
                 for j_windows in range(config.n_windows):
                     eeg_norm = eeg_scaled[j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
                     f_data["data"][u,...] = eeg_norm

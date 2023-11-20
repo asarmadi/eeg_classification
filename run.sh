@@ -10,7 +10,7 @@ MODEL_TYPE=cnnlstm
 TEST_TARGET=1
 #VALID_TARGET=${}
 
-#python mat2h5Conversion1D.py --target_test ${TEST_TARGET}
+python mat2h5Conversion1D.py --target_test ${TEST_TARGET}
 
 python main.py --lr ${LR} --batch_size ${BATCH_SIZE} --wd ${WD} --model_type ${MODEL_TYPE} --n_epochs ${NEPOCHS} --kernel_size ${KERNEL_SIZE}
 
