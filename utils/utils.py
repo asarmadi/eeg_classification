@@ -48,7 +48,7 @@ def test(model, dataloader, model_type, device):
  #              input('enter')
             progress_bar(batch_idx, len(dataloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
 
-        print('Test Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
+        print('Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
         return 100.*correct/total, subjects.unique().numpy()
     
 def count_num_classes(dataloader, label):
@@ -67,6 +67,21 @@ def spectrogram_per_channel(g, config):
 
 def Normalize(ave, std, x):
     return ((x-ave)/std)
+
+def scale(X):
+    min_des, max_des = 0, 1
+    X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
+    X_scaled = X_std * (max_des - min_des) + min_des
+    return X_scaled
+
+def preprocess_signal(config, X):
+    if config.preprocess_normalize:
+       mean, std  = np.mean(X, axis=0), np.std(X, axis=0)
+       X = Normalize(mean, std, X)
+    if config.preprocess_scale:
+       X = scale(X)
+    return X
+
 
 def onehot_encode(labels, device):
     onehot_tensor = torch.zeros(*labels.shape, 2) # 10 classes for MNIST

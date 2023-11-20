@@ -1,6 +1,6 @@
 import h5py
 from utils.config import Config
-from utils.utils import Normalize
+from utils.utils import preprocess_signal
 import numpy as np
 import random
 import argparse
@@ -61,33 +61,38 @@ u = 0
 s = 0    # sth sample in test set
 v = 0    # vth sample in validation set
 
-path = config.file_path + "SF_Obs_MLdata.mat"
+path = config.file_path + "SF_Img_MLdata.mat"
 
 f = h5py.File(path,'r')
 
+'''
 if config.preprocess_normalize:
-   train_eeg = []
+   train_eeg_mean = {}
+   train_eeg_std  = {}
    for subject in config.train_subjects:
+       train_eeg = []
        for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
            print(f'subject#: {subject}, condition: {condition}')
            ref = f["data"][condition][subject]
-           eeg = np.array(f[ref])
+           eeg = np.array(f[ref])[:config.n_trial,:,:]
            train_eeg.append(eeg[:,:config.window_len,::])
-#
-   train_eeg = np.array(train_eeg)
-   train_eeg = np.mean(train_eeg, axis=0)
-   mean, std = np.mean(train_eeg, axis=0), np.std(train_eeg, axis=0)
+       train_eeg = np.array(train_eeg)
+       train_eeg = np.mean(train_eeg, axis=0)
+       train_eeg_mean[subject] = np.mean(train_eeg, axis=0)
+       train_eeg_std[subject]  = np.std(train_eeg, axis=0)
+'''
 
+def generate_data(subjects_list, ):
 for subject in config.train_subjects:
     for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
         print(f'Train subject#: {subject}, condition: {condition}')
         ref = f["data"][condition][subject]
         eeg = np.array(f[ref])
         for i_trial in range(config.n_trial):
+            eeg_scaled = eeg[i_trial,:,:]
+            eeg_scaled = preprocess_signal(eeg_scaled)
             for j_windows in range(config.n_windows):
-                eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
-                if config.preprocess_normalize:
-                   eeg_norm = Normalize(mean, std, eeg_norm)
+                eeg_norm = eeg_scaled[j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
                 f_train["data"][u,...] = eeg_norm
                 f_train["subject"][u]  = subject
                 f_train["label"][u]    = condition
@@ -100,10 +105,10 @@ for subject in config.test_subjects:
         ref = f["data"][condition][subject]
         eeg = np.array(f[ref])
         for i_trial in test_trials:
+            eeg_scaled = eeg[i_trial,:,:]
+            eeg_scaled = preprocess_signal(eeg_scaled)
             for j_windows in range(config.n_windows):
-                eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
-                if config.preprocess_normalize:
-                   eeg_norm = Normalize(mean, std, eeg_norm)
+                eeg_norm = eeg_scaled[j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
                 f_test["data"][s,...] = eeg_norm
                 f_test["subject"][s]  = subject
                 f_test["label"][s]    = condition
@@ -116,10 +121,13 @@ for subject in config.valid_subjects:
         ref = f["data"][condition][subject]
         eeg = np.array(f[ref])
         for i_trial in valid_trials:
+            eeg_scaled = eeg[i_trial,:,:]
+            if config.preprocess_scale:
+               eeg_scaled = scale(eeg_scaled)
             for j_windows in range(config.n_windows):
-                eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
+                eeg_norm = eeg_scaled[j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
                 if config.preprocess_normalize:
-                   eeg_norm = Normalize(mean, std, eeg_norm)
+                   eeg_norm = Normalize(train_eeg_mean[subject], train_eeg_std[subject], eeg_norm)
                 f_valid["data"][v,...] = eeg_norm
                 f_valid["subject"][v]  = subject
                 f_valid["label"][v]    = condition
