@@ -29,13 +29,13 @@ net.eval()
 cudnn.benchmark = True
 
 print("Test Performance:")
-test_acc, target_test  = test(net, testloader, config.model_type, args.device)
+test_acc, target_test  = test(net, testloader, config)
 
 print("Validation Performance:")
-valid_acc, target_valid = test(net, validloader, config.model_type, args.device)
+valid_acc, target_valid = test(net, validloader, config)
 
 print("Train Performance:")
-train_acc, _ = test(net, trainloader, config.model_type, args.device)
+train_acc, _ = test(net, trainloader, config)
 
 header_name = 'Name,Acc,Target'
 data = [['Train', train_acc, 0], ['Test', test_acc, target_test], ['Valid', valid_acc, target_valid] ]

@@ -14,10 +14,10 @@ test_acc  = {}
 valid_acc = {}
 train_acc = {}
 
-#for train_idx in config.all_subjects:
-#    with open(filePath+"test_results_"+str(train_idx)+".0.csv", newline='') as f:
-for files in csv_files:
-    with open(filePath+files, newline='') as f:
+for train_idx in config.all_subjects:
+    with open(filePath+"test_results_"+str(train_idx)+".0.csv", newline='') as f:
+#for files in csv_files:
+ #   with open(filePath+files, newline='') as f:
            data = list(csv.reader(f))
            train_acc[data[2][2][:-2]] = float(data[1][1])
            test_acc[data[2][2][:-2]]  = float(data[2][1])

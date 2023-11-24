@@ -12,16 +12,18 @@ class LSTMConv(nn.Module):
         self.lstm = nn.LSTM(config.n_channels, config.hidden_dim, config.layer_dim, batch_first=True, dropout=0.1)
         h_shape = config.window_len
 
-        self.conv_layer1 = nn.Sequential(nn.Conv1d(config.hidden_dim, 8, kernel_size=kernel_size),nn.AvgPool2d(2),nn.ReLU(inplace=True))
-        h_shape = (h_shape - kernel_size + 1)//2
+        self.conv_layer1 = nn.Sequential(nn.Conv1d(config.hidden_dim, 8, kernel_size=kernel_size),nn.BatchNorm1d(8),nn.ReLU(inplace=True), nn.Dropout(0.1))
+        h_shape = (h_shape - kernel_size + 1)
 
-        self.conv_layer2 = nn.Sequential(nn.Conv1d(4, 8, kernel_size=kernel_size),nn.AvgPool2d(2),nn.ReLU(inplace=True))
-        h_shape = (h_shape-kernel_size + 1)//2
+        self.conv_layer2 = nn.Sequential(nn.Conv1d(8, 8, kernel_size=kernel_size),nn.ReLU(inplace=True),nn.Dropout(0.1))
+        h_shape = (h_shape-kernel_size + 1)
 
-        self.conv_layer3 = nn.Sequential(nn.Conv1d(4, 8, kernel_size=kernel_size),nn.AvgPool2d(2),nn.ReLU(inplace=True))
-        h_shape = (h_shape-kernel_size+1)//2
+        self.conv_layer3 = nn.Sequential(nn.Conv1d(8, 8, kernel_size=kernel_size),nn.ReLU(inplace=True),nn.Dropout(0.1))
+        h_shape = (h_shape-kernel_size+1)
 
-        self.fc1 = nn.Linear(4*h_shape, 128)
+        self.fc1 = nn.Linear(8*h_shape, 128)
+        self.bn1 = nn.BatchNorm1d(128)
+        self.dro = nn.Dropout(0.1)
         self.fc2 = nn.Linear(128, config.n_classes)
         self.sigmoid = nn.Sigmoid()
         self.relu    = nn.ReLU()
@@ -32,14 +34,13 @@ class LSTMConv(nn.Module):
         # Propagate input through LSTM
         output, (hn, cn) = self.lstm(x, (h_0, c_0)) #lstm with input, hidden, and internal state
 #        hn = hn.reshape(-1, self.num_layers*self.hidden_size) #reshaping the data for Dense layer next
-
         out = self.relu(output)
         out = out.permute(0,2,1)
         out = self.conv_layer1(out)
         out = self.conv_layer2(out)
         out = self.conv_layer3(out)
         out = out.reshape(-1, out.shape[1]*out.shape[2])
-        out = self.relu(self.fc1(out))
+        out = self.dro(self.relu(self.bn1(self.fc1(out))))
         out = self.sigmoid(self.fc2(out))
         return out
 

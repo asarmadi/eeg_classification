@@ -17,6 +17,7 @@ from braindecode.models import ShallowFBCSPNet
 from utils.hdf5_dataset import *
 import numpy as np
 from scipy import signal
+from utils.gaussianTrans import GaussianFourierFeatureTransform
 
 
 _, term_width = os.popen('stty size', 'r').read().split()
@@ -26,26 +27,27 @@ TOTAL_BAR_LENGTH = 65.
 last_time = time.time()
 begin_time = last_time
 
-def test(model, dataloader, model_type, device):
+def test(model, dataloader, config):
     model.eval()
     correct = 0
     total = 0
+    gauss_obj = GaussianFourierFeatureTransform(1, config.mapping_size, 10)
     with torch.no_grad():
         for batch_idx, (inputs, targets, subjects) in enumerate(dataloader):
-            inputs, targets = inputs.to(device), targets.to(device).reshape(-1,1)
-            if model_type == 'capsnet':
+            inputs, targets = inputs.to(config.device), targets.to(config.device).reshape(-1,1)
+            if config.apply_gauss:
+                 inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
+
+            if config.model_type == 'capsnet':
                  outputs, reconstructions, masked = model(inputs)
-                 onehot_tensor = onehot_encode(targets, device)
+                 outputs = outputs.reshape(-1,1)
+                 outputs = torch.nn.functional.softmax(outputs,dim=1)
+#                 onehot_tensor = onehot_encode(targets, config.device)
             else:
                  outputs = model(inputs)
             predicted = outputs.round()
             total += targets.size(0)
-            if model_type == 'capsnet':
-               correct += sum(np.argmax(masked.data.cpu().numpy(), 1) == np.argmax(onehot_tensor.data.cpu().numpy(), 1))
-            else:
-               correct += predicted.eq(targets).sum().item()
-#               print(predicted, targets, predicted.eq(targets), predicted.eq(targets).sum())
- #              input('enter')
+            correct += predicted.eq(targets).sum().item()
             progress_bar(batch_idx, len(dataloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
 
         print('Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
@@ -84,8 +86,11 @@ def preprocess_signal(config, X):
 
 
 def onehot_encode(labels, device):
-    onehot_tensor = torch.zeros(*labels.shape, 2) # 10 classes for MNIST
+    print(labels.shape)
+    onehot_tensor = torch.zeros(*labels.shape, 1)
+    print(onehot_tensor.shape)
     labels = labels.type(torch.LongTensor)
+    print(labels.view(-1, 1).shape)
     onehot_tensor = onehot_tensor.scatter(1, labels.view(-1, 1), 1)
     onehot_tensor = onehot_tensor.to(device)
     return onehot_tensor
@@ -105,14 +110,14 @@ def model_loader(config, kernel_size):
        return ShallowFBCSPNet(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
 
 def data_loader(batch_size, num_workers, model_type):
-    if 'lstm' in model_type or '1d' in model_type or model_type=='brainC':
-       trainset = HDF5Dataset('./data/train_1d.h5')
-       validset = HDF5Dataset('./data/valid_1d.h5')
-       testset  = HDF5Dataset('./data/test_1d.h5')
-    else:
-       trainset = HDF5Dataset('./data/train_2d.h5')
-       validset = HDF5Dataset('./data/valid_2d.h5')
-       testset  = HDF5Dataset('./data/test_2d.h5')
+#    if 'lstm' in model_type or '1d' in model_type or model_type=='brainC':
+    trainset = HDF5Dataset('./data/train_1d.h5')
+    validset = HDF5Dataset('./data/valid_1d.h5')
+    testset  = HDF5Dataset('./data/test_1d.h5')
+ #   else:
+  #     trainset = HDF5Dataset('./data/train_2d.h5')
+   #    validset = HDF5Dataset('./data/valid_2d.h5')
+    #   testset  = HDF5Dataset('./data/test_2d.h5')
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=False)
     validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)

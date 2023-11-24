@@ -8,6 +8,7 @@ import argparse
 import numpy as np
 from utils.config import Config
 from utils.utils import *
+from utils.gaussianTrans import GaussianFourierFeatureTransform
 
 
 parser = argparse.ArgumentParser(description='EEG Classification')
@@ -23,9 +24,9 @@ args = parser.parse_args()
 
 best_acc = 0
 trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.model_type)
-
 config = Config(args.model_type)
 config.device = args.device
+gauss_obj = GaussianFourierFeatureTransform(1, config.mapping_size, 10)
 net = model_loader(config,args.kernel_size)
 #net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
 #net = torch.nn.DataParallel(net)
@@ -61,25 +62,27 @@ def train():
     total = 0
     for batch_idx, (inputs, targets, _) in enumerate(trainloader):
         inputs, targets = inputs.to(args.device), targets.to(args.device).reshape(-1,1)
+        if config.apply_gauss:
+           inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
         optimizer.zero_grad()
         if config.model_type == 'capsnet':
            outputs, reconstructions, masked = net(inputs)
-           #onehot_tensor = onehot_encode(targets, args.device)
-           #loss = net.loss(inputs, outputs, onehot_tensor, reconstructions)
+#           onehot_tensor = onehot_encode(targets, args.device)
+           loss = net.loss(inputs, outputs, targets, reconstructions)
+           outputs = outputs.reshape(-1,1)
+           outputs = nn.functional.softmax(outputs,dim=1)
         else:
            outputs = net(inputs)
-        loss = criterion(outputs, targets)
+           loss = criterion(outputs, targets)
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
         predicted = outputs.round()
         total += targets.size(0)
-        if config.model_type == 'capsnet':
-           correct += sum(np.argmax(masked.data.cpu().numpy(), 1) == np.argmax(onehot_tensor.data.cpu().numpy(), 1))
-        else:
-           correct += predicted.eq(targets).sum().item()
-#           print(predicted, targets, predicted.eq(targets), predicted.eq(targets).sum())
- #          input('enter')
+#        if config.model_type == 'capsnet':
+ #          correct += sum(np.argmax(masked.data.cpu().numpy(), 1) == np.argmax(onehot_tensor.data.cpu().numpy(), 1))
+  #      else:
+        correct += predicted.eq(targets).sum().item()
 
         progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
@@ -88,7 +91,7 @@ for epoch in range(1,args.n_epochs):
     print('\nEpoch: {}/{}'.format(epoch,args.n_epochs))
     train()
 
-    clean_acc,_ = test(net, validloader, config.model_type, args.device)
+    clean_acc,_ = test(net, validloader, config)
     if epoch == 1:
        best_acc = clean_acc
     if (clean_acc >= best_acc):

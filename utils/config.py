@@ -10,9 +10,13 @@ class Config:
           self.n_trial      = 22  # For Imaginary it should be 22
           self.file_path    = './data/'  # Path to save the h5 files
           self.n_classes    = 1
-          self.preprocess_normalize = False
-          self.preprocess_scale = True
+          self.preprocess_normalize = True
+          self.preprocess_scale = False
           self.device       = 'cuda:0'
+
+          # Gaussian Transform
+          self.apply_gauss = True
+          self.mapping_size = 3
 
           # Each segement
           self.window_len  = 1500
@@ -36,8 +40,8 @@ class Config:
 
           if model == 'capsnet':
             # CNN (cnn)
-            self.cnn_in_channels  = self.n_channels
-            self.cnn_out_channels = 256
+            self.cnn_in_channels  = 2*self.mapping_size
+            self.cnn_out_channels = 32
             self.cnn_kernel_size  = 9
 
             # Primary Capsule (pc)
@@ -45,17 +49,17 @@ class Config:
             self.pc_in_channels  = self.cnn_out_channels
             self.pc_out_channels = 32
             self.pc_kernel_size  = 9
-            self.pc_num_routes   = 32 * 5 * 5
+            self.pc_num_routes   = 32 * 4 * 4
 
             # Digit Capsule (dc)
-            self.dc_num_capsules = 10
+            self.dc_num_capsules = 1
             self.dc_num_routes = self.pc_num_routes
-            self.dc_in_channels = 1
-            self.dc_out_channels = 128
+            self.dc_in_channels = 18
+            self.dc_out_channels = 1
 
             # Decoder
-            self.input_width  = self.nTimeBins
-            self.input_height = self.freq_cut
+            self.input_width  = self.window_len
+            self.input_height = self.n_channels
 
           if 'lstm' in model:
             self.hidden_dim = 128

@@ -13,25 +13,27 @@ class ConvLayer(nn.Module):
         self.conv  = nn.Conv2d(in_channels=in_channels,
                               out_channels=out_channels,
                               kernel_size=kernel_size,
-                              stride=2
+                              stride=(3,1)
                               )
-        
-#        self.conv1 = nn.Conv2d(in_channels=out_channels,
- #                             out_channels=out_channels,
-  #                            kernel_size=kernel_size,
-   #                           stride=2
-    #                          )
-        
-     #   self.conv2 = nn.Conv2d(in_channels=out_channels,
-      #                        out_channels=out_channels,
-       #                       kernel_size=kernel_size,
-        #                      stride=2
-         #                     )
+
+        self.conv1 = nn.Conv2d(in_channels=out_channels,
+                              out_channels=out_channels,
+                              kernel_size=kernel_size,
+                              stride=(3,1)
+                              )
+
+        self.conv2 = nn.Conv2d(in_channels=out_channels,
+                              out_channels=out_channels,
+                              kernel_size=kernel_size,
+                              stride=(3,1)
+                              )
+
+        self.avg1 = nn.AvgPool2d(2)
 
     def forward(self, x):
-#        x = F.relu(self.conv(x))
- #       x = F.relu(self.conv1(x))
-        return F.relu(self.conv(x))
+        x = F.relu(self.conv(x))
+        x = F.relu(self.conv1(x))
+        return self.avg1(F.relu(self.conv2(x)))
 
 
 class PrimaryCaps(nn.Module):
@@ -45,7 +47,7 @@ class PrimaryCaps(nn.Module):
     def forward(self, x):
         u = [capsule(x) for capsule in self.capsules]
         u = torch.stack(u, dim=1)
-        u = u.view(x.size(0), self.num_routes, -1)
+        u = u.reshape(x.size(0), self.num_routes, -1)
         return self.squash(u)
 
     def squash(self, input_tensor):
@@ -69,7 +71,6 @@ class DigitCaps(nn.Module):
         x = torch.stack([x] * self.num_capsules, dim=2).unsqueeze(4)
 
         W = torch.cat([self.W] * batch_size, dim=0)
-        print(W.shape, x.shape)
         u_hat = torch.matmul(W, x)
 
         b_ij = Variable(torch.zeros(1, self.num_routes, self.num_capsules, 1))
@@ -103,7 +104,7 @@ class Decoder(nn.Module):
         self.input_height = input_height
         self.input_channel = input_channel
         self.reconstraction_layers = nn.Sequential(
-            nn.Linear(16 * 2, 512),
+            nn.Linear(2, 512),
             nn.ReLU(inplace=True),
             nn.Linear(512, 1024),
             nn.ReLU(inplace=True),
@@ -145,17 +146,20 @@ class CapsNet(nn.Module):
         self.mse_loss = nn.MSELoss()
 
     def forward(self, data):
-        print(data.shape)
+#        print(f'data: {data.shape}')
         x1 = self.conv_layer(data)
-        print(x1.shape)
+ #       print(f'X1: {x1.shape}')
         x2 = self.primary_capsules(x1)
-        print(x2.shape)
+  #      print(f'X2: {x2.shape}')
         output = self.digit_capsules(x2)
-        reconstructions, masked = self.decoder(output, data)
-        return output, reconstructions, masked
+   #     print(f'output: {output.shape}')
+        return output, None, None
+#        reconstructions, masked = self.decoder(output, data)
+#        return output, reconstructions, masked
 
     def loss(self, data, x, target, reconstructions):
-        return self.margin_loss(x, target) + self.reconstruction_loss(data, reconstructions)
+        return self.margin_loss(x, target)
+#        return self.margin_loss(x, target) + self.reconstruction_loss(data, reconstructions)
 
     def margin_loss(self, x, labels, size_average=True):
         batch_size = x.size(0)
@@ -171,5 +175,5 @@ class CapsNet(nn.Module):
         return loss
 
     def reconstruction_loss(self, data, reconstructions):
-        loss = self.mse_loss(reconstructions.view(reconstructions.size(0), -1), data.view(reconstructions.size(0), -1))
+        loss = self.mse_loss(reconstructions.reshape(reconstructions.size(0), -1), data.reshape(reconstructions.size(0), -1))
         return loss * 0.0005
