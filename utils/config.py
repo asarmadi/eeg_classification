@@ -19,7 +19,7 @@ class Config:
           self.mapping_size = 3
 
           # Each segement
-          self.window_len  = 2000
+          self.window_len  = 1800
           self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 

@@ -13,7 +13,7 @@ from models.capsnet import CapsNet
 from models.lstm import LSTMClassifier
 from models.cnn_lstm import LSTMConv
 from models.cnn_1d import Conv1D
-from braindecode.models import ShallowFBCSPNet, EEGNetv1
+from braindecode.models import ShallowFBCSPNet, EEGNetv4
 from utils.hdf5_dataset import *
 import numpy as np
 from scipy import signal
@@ -111,7 +111,7 @@ def model_loader(config, kernel_size):
     elif config.model_type == 'cnn1d':
        return Conv1D(config, kernel_size)
     elif config.model_type == 'eegnet':
-       return EEGNetv1(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len)
+       return EEGNetv4(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len)
     elif config.model_type == 'brainC':
        return ShallowFBCSPNet(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
 
