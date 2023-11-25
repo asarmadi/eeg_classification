@@ -1,12 +1,16 @@
-import random
 import h5py
 from utils.config import Config
+from utils.utils import preprocess_signal, spectrogram_per_channel
 import numpy as np
-from utils.utils import spectrogram_per_channel, Normalize
+import argparse
+
+parser = argparse.ArgumentParser(description='EEG h5 generator')
+parser.add_argument('--target_test', default='0',type=str, help='Subject for test')
+parser.add_argument('--apply_stft', action='store_true', default=False, help='Apply STFT')
+args = parser.parse_args()
 
 config = Config()
-test_sub = random.choice(config.all_subjects)
-config.test_subjects  = np.array([test_sub])
+config.test_subjects  = np.array([int(args.target_test)])
 config.train_subjects = np.setdiff1d(config.all_subjects, config.test_subjects)
 
 valid_sub = np.random.choice(config.train_subjects,3,replace=False)
@@ -17,110 +21,55 @@ all_trials   =  np.array(range(0,config.n_trial))
 test_trials  = all_trials
 valid_trials = all_trials
 
+print(f'Test Subjects:  {config.test_subjects}')
+print(f'Valid Subjects: {config.valid_subjects}')
+print(f'Train Subjects: {config.train_subjects}')
 
-n_samples_train = len(config.train_subjects)*config.n_windows*config.n_trial*len(config.conditions)
-n_samples_valid = len(config.valid_subjects)*config.n_windows*config.n_trial*len(config.conditions)
-n_samples_test  = len(config.test_subjects) *config.n_windows*config.n_trial*len(config.conditions)
-print(n_samples_train,n_samples_valid)
+path = config.file_path + "SF_Img_MLdata.mat"
 
-train_shape = (n_samples_train, config.n_channels, config.freq_cut, config.nTimeBins)
-valid_shape = (n_samples_valid, config.n_channels, config.freq_cut, config.nTimeBins)
-test_shape  = (n_samples_test,  config.n_channels, config.freq_cut, config.nTimeBins)
+def generate_data(data_type):
+    u = 0
+    if data_type == 'train':
+        subjects_list = config.train_subjects
+    elif data_type == 'test':
+        subjects_list = config.test_subjects
+    elif data_type == 'valid':
+        subjects_list = config.valid_subjects
+    n_samples = len(subjects_list)*config.n_windows*config.n_trial*len(config.conditions)
+    if args.apply_stft:
+        data_shape = (n_samples, config.n_channels, config.freq_cut, config.nTimeBins)
+        path_name_str = '2d'
+    else:
+        data_shape = (n_samples, config.window_len, config.n_channels)
+        path_name_str = '1d'
+    f_data = h5py.File(config.file_path+data_type+'_'+path_name_str+'.h5', "w")
+    f_data.create_dataset("data",    data_shape)
+    f_data.create_dataset("label",   (n_samples,))
+    f_data.create_dataset("subject", (n_samples,))
+    f_data.create_dataset("trial",   (n_samples,))
 
-f_train = h5py.File(config.file_path+'train_2d.h5', "w")
-f_train.create_dataset("data", train_shape)
-f_train.create_dataset("label", (n_samples_train,))
-f_train.create_dataset("subject", (n_samples_train,))
-f_train.create_dataset("trial", (n_samples_train,))
+    f = h5py.File(path,'r')
 
-f_test = h5py.File(config.file_path+'test_2d.h5', "w")
-f_test.create_dataset("data", test_shape)
-f_test.create_dataset("label", (n_samples_test,))
-f_test.create_dataset("subject", (n_samples_test,))
-f_test.create_dataset("trial", (n_samples_test,))
+    for subject in subjects_list:
+        for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
+            print(f'{data_type} subject#: {subject}, condition: {condition}')
+            ref = f["data"][condition][subject]
+            eeg = np.array(f[ref])
+            for i_trial in range(config.n_trial):
+                eeg_scaled = eeg[i_trial,:,:]
+                eeg_scaled = preprocess_signal(config,eeg_scaled)
+                for j_windows in range(config.n_windows):
+                    eeg_norm = eeg_scaled[j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
+                    if args.apply_stft:
+                        f_data["data"][u,...] = spectrogram_per_channel(eeg_norm, config)
+                    else:
+                        f_data["data"][u,...] = eeg_norm
+                    f_data["subject"][u]  = subject
+                    f_data["label"][u]    = condition
+                    f_data["trial"][u]    = i_trial
+                    u += 1
+    f_data.close()
 
-
-f_valid = h5py.File(config.file_path+'valid_2d.h5', "w")
-f_valid.create_dataset("data", valid_shape)
-f_valid.create_dataset("label", (n_samples_valid,))
-f_valid.create_dataset("subject", (n_samples_valid,))
-f_valid.create_dataset("trial", (n_samples_valid,))
-
-u = 0
-s = 0    # sth sample in test set
-v = 0    # vth sample in validation set
-
-path = config.file_path + "SF_Obs_MLdata.mat"
-
-f = h5py.File(path,'r')
-
-'''
-train_eeg = []
-for subject in config.train_subjects:
-    for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
-        print(f'subject#: {subject}, condition: {condition}')
-        ref = f["data"][condition][subject]
-        eeg = np.array(f[ref])
-        train_eeg.append(eeg)
-#
-train_eeg = np.array(train_eeg)
-train_eeg = np.mean(train_eeg, axis=0)
-mean, std = np.mean(train_eeg, axis=0), np.std(train_eeg, axis=0)
-print(mean.shape)
-'''
-
-for subject in config.train_subjects:
-    for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
-        print(f'Train subject#: {subject}, condition: {condition}')
-        ref = f["data"][condition][subject]
-        eeg = np.array(f[ref])
-        for i_trial in range(config.n_trial):
-            for j_windows in range(config.n_windows):
-                eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
-                if config.preprocess_normalize:
-                   eeg_norm = Normalize(mean, std, eeg_norm)
-                Sxx = spectrogram_per_channel(eeg_norm, config)
-                f_train["data"][u,...] = Sxx
-                f_train["subject"][u]  = subject
-                f_train["label"][u]    = condition
-                f_train["trial"][u]    = i_trial
-                u += 1
-
-for subject in config.test_subjects:
-    for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
-        print(f'Test subject#: {subject}, condition: {condition}')
-        ref = f["data"][condition][subject]
-        eeg = np.array(f[ref])
-        for i_trial in range(config.n_trial):
-            for j_windows in range(config.n_windows):
-                eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
-                if config.preprocess_normalize:
-                   eeg_norm = Normalize(mean, std, eeg_norm)
-                Sxx = spectrogram_per_channel(eeg_norm, config)
-                f_test["data"][s,...] = Sxx
-                f_test["subject"][s]  = subject
-                f_test["label"][s]    = condition
-                f_test["trial"][s]    = i_trial
-                s += 1
-
-for subject in config.valid_subjects:
-    for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
-        print(f'Valid subject#: {subject}, condition: {condition}')
-        ref = f["data"][condition][subject]
-        eeg = np.array(f[ref])
-        for i_trial in range(config.n_trial):
-            for j_windows in range(config.n_windows):
-                eeg_norm = eeg[i_trial,j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
-                if config.preprocess_normalize:
-                   eeg_norm = Normalize(mean, std, eeg_norm)
-                Sxx = spectrogram_per_channel(eeg_norm, config)
-                f_valid["data"][v,...] = Sxx
-                f_valid["subject"][v]  = subject
-                f_valid["label"][v]    = condition
-                f_valid["trial"][v]    = i_trial
-                v += 1
-
-f_train.close()
-f_test.close()
-f_valid.close()
+for dataSet in ['train', 'test', 'valid']:
+    generate_data(dataSet)
 
