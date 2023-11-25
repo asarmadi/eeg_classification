@@ -9,17 +9,17 @@ class Config:
           self.n_timepoints = 2000
           self.n_trial      = 22  # For Imaginary it should be 22
           self.file_path    = './data/'  # Path to save the h5 files
-          self.n_classes    = 1
-          self.preprocess_normalize = True
+          self.n_classes    = 2
+          self.preprocess_normalize = False
           self.preprocess_scale = False
           self.device       = 'cuda:0'
 
           # Gaussian Transform
-          self.apply_gauss = True
+          self.apply_gauss = False
           self.mapping_size = 3
 
           # Each segement
-          self.window_len  = 1500
+          self.window_len  = 2000
           self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
@@ -40,7 +40,7 @@ class Config:
 
           if model == 'capsnet':
             # CNN (cnn)
-            self.cnn_in_channels  = 2*self.mapping_size
+            self.cnn_in_channels  = 1
             self.cnn_out_channels = 32
             self.cnn_kernel_size  = 9
 

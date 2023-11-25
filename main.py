@@ -47,13 +47,14 @@ net.eval()
 
 pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
 print(f'Number of Parameters: {pytorch_total_params}')
-optimizer = optim.Adam(net.parameters(), lr=args.lr,  weight_decay=args.wd)
+optimizer = optim.AdamW(net.parameters(), lr=args.lr,  weight_decay=args.wd)
 #optimizer = torch.optim.RMSprop(net.parameters(), lr=args.lr)
 
 cudnn.benchmark = True
 
-criterion = nn.BCELoss()
-scheduler = MultiStepLR(optimizer, milestones=[100,200], gamma=0.1)
+#criterion = nn.BCELoss()
+criterion = nn.NLLLoss()
+scheduler = MultiStepLR(optimizer, milestones=[200,300], gamma=0.1)
 
 def train():
     net.train()
@@ -61,23 +62,28 @@ def train():
     correct = 0
     total = 0
     for batch_idx, (inputs, targets, _) in enumerate(trainloader):
-        inputs, targets = inputs.to(args.device), targets.to(args.device).reshape(-1,1)
+        inputs, targets = inputs.to(args.device), targets.to(args.device)
         if config.apply_gauss:
            inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
+        if config.model_type == 'eegnet':
+           inputs = inputs.permute(0,2,1)
+#           inputs = inputs.unsqueeze(1)
+ #          inputs = inputs.reshape(-1,1,config.window_len,config.n_channels)
         optimizer.zero_grad()
         if config.model_type == 'capsnet':
            outputs, reconstructions, masked = net(inputs)
 #           onehot_tensor = onehot_encode(targets, args.device)
-           loss = net.loss(inputs, outputs, targets, reconstructions)
+#           loss = net.loss(inputs, outputs, targets, reconstructions)
            outputs = outputs.reshape(-1,1)
            outputs = nn.functional.softmax(outputs,dim=1)
         else:
            outputs = net(inputs)
-           loss = criterion(outputs, targets)
+        loss = criterion(outputs, targets.long())
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
-        predicted = outputs.round()
+#        predicted = outputs.round()
+        _, predicted = outputs.max(1)
         total += targets.size(0)
 #        if config.model_type == 'capsnet':
  #          correct += sum(np.argmax(masked.data.cpu().numpy(), 1) == np.argmax(onehot_tensor.data.cpu().numpy(), 1))

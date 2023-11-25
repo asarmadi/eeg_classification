@@ -13,7 +13,7 @@ from models.capsnet import CapsNet
 from models.lstm import LSTMClassifier
 from models.cnn_lstm import LSTMConv
 from models.cnn_1d import Conv1D
-from braindecode.models import ShallowFBCSPNet
+from braindecode.models import ShallowFBCSPNet, EEGNetv1
 from utils.hdf5_dataset import *
 import numpy as np
 from scipy import signal
@@ -34,9 +34,12 @@ def test(model, dataloader, config):
     gauss_obj = GaussianFourierFeatureTransform(1, config.mapping_size, 10)
     with torch.no_grad():
         for batch_idx, (inputs, targets, subjects) in enumerate(dataloader):
-            inputs, targets = inputs.to(config.device), targets.to(config.device).reshape(-1,1)
+            inputs, targets = inputs.to(config.device), targets.to(config.device)
             if config.apply_gauss:
                  inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
+            else:
+                 inputs = inputs.permute(0,2,1)
+#                 inputs = inputs.reshape(-1,1,config.window_len,config.n_channels)
 
             if config.model_type == 'capsnet':
                  outputs, reconstructions, masked = model(inputs)
@@ -45,7 +48,8 @@ def test(model, dataloader, config):
 #                 onehot_tensor = onehot_encode(targets, config.device)
             else:
                  outputs = model(inputs)
-            predicted = outputs.round()
+            _, predicted = outputs.max(1)
+            #predicted = outputs.round()
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
             progress_bar(batch_idx, len(dataloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
@@ -106,6 +110,8 @@ def model_loader(config, kernel_size):
        return LSTMConv(config,kernel_size)
     elif config.model_type == 'cnn1d':
        return Conv1D(config, kernel_size)
+    elif config.model_type == 'eegnet':
+       return EEGNetv1(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len)
     elif config.model_type == 'brainC':
        return ShallowFBCSPNet(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
 
