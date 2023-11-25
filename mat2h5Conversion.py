@@ -6,7 +6,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='EEG h5 generator')
 parser.add_argument('--target_test', default='0',type=str, help='Subject for test')
-parser.add_argument('--apply_stft', action='store_true', default=False, help='Apply STFT')
+parser.add_argument('--stft', action='store_true', default=False, help='Apply STFT')
 args = parser.parse_args()
 
 config = Config()
@@ -36,7 +36,7 @@ def generate_data(data_type):
     elif data_type == 'valid':
         subjects_list = config.valid_subjects
     n_samples = len(subjects_list)*config.n_windows*config.n_trial*len(config.conditions)
-    if args.apply_stft:
+    if args.stft:
         data_shape = (n_samples, config.n_channels, config.freq_cut, config.nTimeBins)
         path_name_str = '2d'
     else:
@@ -60,7 +60,7 @@ def generate_data(data_type):
                 eeg_scaled = preprocess_signal(config,eeg_scaled)
                 for j_windows in range(config.n_windows):
                     eeg_norm = eeg_scaled[j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
-                    if args.apply_stft:
+                    if args.stft:
                         f_data["data"][u,...] = spectrogram_per_channel(eeg_norm, config)
                     else:
                         f_data["data"][u,...] = eeg_norm

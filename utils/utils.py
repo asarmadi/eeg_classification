@@ -37,8 +37,8 @@ def test(model, dataloader, config):
             inputs, targets = inputs.to(config.device), targets.to(config.device)
             if config.apply_gauss:
                  inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
-            else:
-                 inputs = inputs.permute(0,2,1)
+#            else:
+ #                inputs = inputs.permute(0,2,1)
 #                 inputs = inputs.reshape(-1,1,config.window_len,config.n_channels)
 
             if config.model_type == 'capsnet':
@@ -115,15 +115,14 @@ def model_loader(config, kernel_size):
     elif config.model_type == 'brainC':
        return ShallowFBCSPNet(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
 
-def data_loader(batch_size, num_workers, model_type):
-#    if 'lstm' in model_type or '1d' in model_type or model_type=='brainC':
-    trainset = HDF5Dataset('./data/train_1d.h5')
-    validset = HDF5Dataset('./data/valid_1d.h5')
-    testset  = HDF5Dataset('./data/test_1d.h5')
- #   else:
-  #     trainset = HDF5Dataset('./data/train_2d.h5')
-   #    validset = HDF5Dataset('./data/valid_2d.h5')
-    #   testset  = HDF5Dataset('./data/test_2d.h5')
+def data_loader(batch_size, num_workers, stft):
+    if stft:
+       name_str = '2d'
+    else:
+       name_str = '1d'
+    trainset = HDF5Dataset('./data/train_'+name_str+'.h5')
+    validset = HDF5Dataset('./data/valid_'+name_str+'.h5')
+    testset  = HDF5Dataset('./data/test_'+name_str+'.h5')
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=False)
     validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)

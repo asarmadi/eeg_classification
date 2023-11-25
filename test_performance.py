@@ -10,10 +10,11 @@ parser.add_argument('--model_type', default='cnn',type=str, help='cnn, caspnet')
 parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
 parser.add_argument('--kernel_size', default=32, type=int, help='Model Kernel Size')
 parser.add_argument('--num_workers', default=4, type=int, help='Number of workers')
+parser.add_argument('--stft', action='store_true', default=False, help='Apply STFT')
 args = parser.parse_args()
 
 best_acc = 0
-trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers, args.model_type)
+trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers, args.stft)
 
 config = Config(args.model_type)
 config.device=args.device

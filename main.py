@@ -20,12 +20,14 @@ parser.add_argument('--n_epochs', default=500, type=int, help='Number of epochs'
 parser.add_argument('--num_workers', default=4, type=int, help='Test Batch Size')
 parser.add_argument('--lr', default=0.001,type=float,help='Learning Rate')
 parser.add_argument('--wd', default=0.01,type=float,help='Weight Decay')
+parser.add_argument('--stft', action='store_true', default=False, help='Apply STFT')
 args = parser.parse_args()
 
 best_acc = 0
-trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.model_type)
+trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.stft)
 config = Config(args.model_type)
 config.device = args.device
+config.stft=args.stft
 gauss_obj = GaussianFourierFeatureTransform(1, config.mapping_size, 10)
 net = model_loader(config,args.kernel_size)
 #net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
@@ -65,8 +67,8 @@ def train():
         inputs, targets = inputs.to(args.device), targets.to(args.device)
         if config.apply_gauss:
            inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
-        if config.model_type == 'eegnet':
-           inputs = inputs.permute(0,2,1)
+#        if config.model_type == 'eegnet':
+ #          inputs = inputs.permute(0,2,1)
 #           inputs = inputs.unsqueeze(1)
  #          inputs = inputs.reshape(-1,1,config.window_len,config.n_channels)
         optimizer.zero_grad()
