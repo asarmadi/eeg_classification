@@ -11,26 +11,27 @@ class Config:
           self.file_path    = './data/'  # Path to save the h5 files
           self.n_classes    = 2
           self.preprocess_normalize = False
-          self.preprocess_scale = False
+          self.preprocess_scale = True
           self.device       = 'cuda:0'
+          self.apply_valid_set = False
 
           # Gaussian Transform
           self.apply_gauss = False
           self.mapping_size = 3
 
           # Each segement
-          self.window_len  = 1800
+          self.window_len  = 1600
           self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
           # STFT Hyper-parameters
           self.stft        = False
           self.fs          = 1000
-          self.nperseg     = 1600
-          self.noverlap    = 1560
-          self.freq_cut    = 51
+          self.nperseg     = 500
+          self.noverlap    = 485
+          self.freq_cut    = 101
 #          self.nTimeBins   = 2*(self.window_len - self.nperseg) // (self.nperseg - self.noverlap) + 1
-          self.nTimeBins   = 51
+          self.nTimeBins   = 108
     
           # Bad Subjects: [0,5,10,11,18]
           self.train_subjects  = []

@@ -21,7 +21,8 @@ for train_idx in config.all_subjects:
            data = list(csv.reader(f))
            train_acc[data[2][2][:-2]] = float(data[1][1])
            test_acc[data[2][2][:-2]]  = float(data[2][1])
-           valid_acc[data[2][2][:-2]] = float(data[3][1])
+           if config.apply_valid_set:
+              valid_acc[data[2][2][:-2]] = float(data[3][1])
 
 print(array([train_acc[k] for k in train_acc]).mean())
 print(array([train_acc[k] for k in train_acc]).std())
@@ -29,14 +30,16 @@ print(array([train_acc[k] for k in train_acc]).std())
 print(array([test_acc[k] for k in test_acc]).mean())
 print(array([test_acc[k] for k in test_acc]).std())
 
-print(array([valid_acc[k] for k in valid_acc]).mean())
-print(array([valid_acc[k] for k in valid_acc]).std())
+if config.apply_valid_set:
+   print(array([valid_acc[k] for k in valid_acc]).mean())
+   print(array([valid_acc[k] for k in valid_acc]).std())
 
 
 plt.figure(0)
 plt.plot(list(train_acc.keys()), list(train_acc.values()), '-r.', label='Train')
 plt.plot(list(test_acc.keys()),  list(test_acc.values()),  '-b.', label='Test')
-plt.plot(list(valid_acc.keys()), list(valid_acc.values()), '-g.', label='Valid')
+if config.apply_valid_set:
+   plt.plot(list(valid_acc.keys()), list(valid_acc.values()), '-g.', label='Valid')
 plt.legend()
 plt.tight_layout()
 plt.savefig('./Figs/Accs.png')

@@ -14,9 +14,9 @@ parser.add_argument('--stft', action='store_true', default=False, help='Apply ST
 args = parser.parse_args()
 
 best_acc = 0
-trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers, args.stft)
 
 config = Config(args.model_type)
+trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers, args.stft, config.apply_valid_set)
 config.device=args.device
 net = model_loader(config, args.kernel_size)
 net = net.to(args.device)
@@ -32,14 +32,18 @@ cudnn.benchmark = True
 print("Test Performance:")
 test_acc, target_test  = test(net, testloader, config)
 
-print("Validation Performance:")
-valid_acc, target_valid = test(net, validloader, config)
+if config.apply_valid_set:
+   print("Validation Performance:")
+   valid_acc, target_valid = test(net, validloader, config)
 
 print("Train Performance:")
 train_acc, _ = test(net, trainloader, config)
 
 header_name = 'Name,Acc,Target'
-data = [['Train', train_acc, 0], ['Test', test_acc, target_test], ['Valid', valid_acc, target_valid] ]
+if config.apply_valid_set:
+   data = [['Train', train_acc, 0], ['Test', test_acc, target_test], ['Valid', valid_acc, target_valid] ]
+else:
+   data = [['Train', train_acc, 0], ['Test', test_acc, target_test] ]
 
 np.savetxt("./out/test_results_"+str(target_test[0])+".csv", data, delimiter=",", header=header_name, comments='', fmt="%s")
 

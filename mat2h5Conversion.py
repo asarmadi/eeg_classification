@@ -12,17 +12,20 @@ args = parser.parse_args()
 config = Config()
 config.test_subjects  = np.array([int(args.target_test)])
 config.train_subjects = np.setdiff1d(config.all_subjects, config.test_subjects)
-
-valid_sub = np.random.choice(config.train_subjects,3,replace=False)
-config.valid_subjects = np.array(valid_sub)
-config.train_subjects = np.setdiff1d(config.train_subjects, config.valid_subjects)
-
 all_trials   =  np.array(range(0,config.n_trial))
 test_trials  = all_trials
-valid_trials = all_trials
+
+if config.apply_valid_set:
+   valid_sub = np.random.choice(config.train_subjects,3,replace=False)
+   config.valid_subjects = np.array(valid_sub)
+   config.train_subjects = np.setdiff1d(config.train_subjects, config.valid_subjects)
+   valid_trials = all_trials
+   print(f'Valid Subjects: {config.valid_subjects}')
+   data_sets = ['train', 'test', 'valid']
+else:
+   data_sets = ['train', 'test']
 
 print(f'Test Subjects:  {config.test_subjects}')
-print(f'Valid Subjects: {config.valid_subjects}')
 print(f'Train Subjects: {config.train_subjects}')
 
 path = config.file_path + "SF_Img_MLdata.mat"
@@ -70,6 +73,7 @@ def generate_data(data_type):
                     u += 1
     f_data.close()
 
-for dataSet in ['train', 'test', 'valid']:
+
+for dataSet in data_sets:
     generate_data(dataSet)
 

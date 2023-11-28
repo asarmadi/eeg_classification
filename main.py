@@ -24,11 +24,14 @@ parser.add_argument('--stft', action='store_true', default=False, help='Apply ST
 args = parser.parse_args()
 
 best_acc = 0
-trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.stft)
 config = Config(args.model_type)
 config.device = args.device
 config.stft=args.stft
-gauss_obj = GaussianFourierFeatureTransform(1, config.mapping_size, 10)
+
+trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.stft, config.apply_valid_set)
+
+if config.apply_gauss:
+   gauss_obj = GaussianFourierFeatureTransform(1, config.mapping_size, 10)
 net = model_loader(config,args.kernel_size)
 #net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
 #net = torch.nn.DataParallel(net)
@@ -67,8 +70,8 @@ def train():
         inputs, targets = inputs.to(args.device), targets.to(args.device)
         if config.apply_gauss:
            inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
-#        if config.model_type == 'eegnet':
- #          inputs = inputs.permute(0,2,1)
+        if config.model_type == 'eegnet':
+           inputs = inputs.permute(0,2,1)
 #           inputs = inputs.unsqueeze(1)
  #          inputs = inputs.reshape(-1,1,config.window_len,config.n_channels)
         optimizer.zero_grad()
@@ -94,12 +97,14 @@ def train():
 
         progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+    return (correct/total)
 
 for epoch in range(1,args.n_epochs):
     print('\nEpoch: {}/{}'.format(epoch,args.n_epochs))
-    train()
+    clean_acc = train()
 
-    clean_acc,_ = test(net, validloader, config)
+    if config.apply_valid_set:
+       clean_acc,_ = test(net, validloader, config)
     if epoch == 1:
        best_acc = clean_acc
     if (clean_acc >= best_acc):
