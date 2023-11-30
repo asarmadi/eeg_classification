@@ -17,6 +17,7 @@ from braindecode.models import ShallowFBCSPNet, EEGNetv4
 from utils.hdf5_dataset import *
 import numpy as np
 from scipy import signal
+import pandas as pd
 from utils.gaussianTrans import GaussianFourierFeatureTransform
 
 
@@ -61,9 +62,15 @@ def test(model, dataloader, config):
         return 100.*correct/total, subjects.unique().numpy()
 
 def test_majority_voting(model, dataloader, config):
+    columns = []
+    columns.append('subject')
+    columns.append('label')
+    columns.append('prediction')
+    columns.append('trial')
     model.eval()
     correct = 0
     total = 0
+    results = torch.tensor([]).to(config.device)
     if config.apply_gauss:
        gauss_obj = GaussianFourierFeatureTransform(1, config.mapping_size, 10)
     with torch.no_grad():
@@ -86,7 +93,12 @@ def test_majority_voting(model, dataloader, config):
             #predicted = outputs.round()
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
+            hh = torch.cat((subjects, targets.reshape(-1,1), predicted.reshape(-1,1),trials.reshape(-1,1) ), dim=1)
+            results = torch.cat((results, hh))
             progress_bar(batch_idx, len(dataloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
+
+        df = pd.DataFrame(results.cpu().numpy(),columns=columns)
+        df.to_csv('./csv_out/'+str(subjects.unique().numpy()[0])+'.csv', encoding='utf-8', index=False)
 
         print('Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
         return 100.*correct/total, subjects.unique().numpy()
