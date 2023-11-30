@@ -28,6 +28,8 @@ last_time = time.time()
 begin_time = last_time
 
 def test(model, dataloader, config):
+    if config.maj_vote:
+       return test_majority_voting(model, dataloader, config)
     model.eval()
     correct = 0
     total = 0
@@ -57,7 +59,39 @@ def test(model, dataloader, config):
 
         print('Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
         return 100.*correct/total, subjects.unique().numpy()
-    
+
+def test_majority_voting(model, dataloader, config):
+    model.eval()
+    correct = 0
+    total = 0
+    if config.apply_gauss:
+       gauss_obj = GaussianFourierFeatureTransform(1, config.mapping_size, 10)
+    with torch.no_grad():
+        for batch_idx, (inputs, targets, subjects, trials) in enumerate(dataloader):
+            inputs, targets = inputs.to(config.device), targets.to(config.device)
+            if config.apply_gauss:
+                 inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
+            else:
+                 inputs = inputs.permute(0,2,1)
+#                 inputs = inputs.reshape(-1,1,config.window_len,config.n_channels)
+
+            if config.model_type == 'capsnet':
+                 outputs, reconstructions, masked = model(inputs)
+                 outputs = outputs.reshape(-1,1)
+                 outputs = torch.nn.functional.softmax(outputs,dim=1)
+#                 onehot_tensor = onehot_encode(targets, config.device)
+            else:
+                 outputs = model(inputs)
+            _, predicted = outputs.max(1)
+            #predicted = outputs.round()
+            total += targets.size(0)
+            correct += predicted.eq(targets).sum().item()
+            progress_bar(batch_idx, len(dataloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
+
+        print('Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
+        return 100.*correct/total, subjects.unique().numpy()
+
+
 def count_num_classes(dataloader, label):
     n_all_samples, n_label_samples = 0, 0
     for batch_idx, (inputs, targets) in enumerate(dataloader):

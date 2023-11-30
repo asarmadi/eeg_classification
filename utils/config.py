@@ -7,13 +7,14 @@ class Config:
           self.n_conditions = 4   # FF, EF, FT, ET
           self.n_channels   = 56
           self.n_timepoints = 2000
-          self.n_trial      = 22  # For Imaginary it should be 22
+          self.n_trial      = 36  # For Imaginary it should be 22
           self.file_path    = './data/'  # Path to save the h5 files
           self.n_classes    = 2
           self.preprocess_normalize = False
-          self.preprocess_scale = True
+          self.preprocess_scale = False
           self.device       = 'cuda:0'
           self.apply_valid_set = False
+          self.maj_vote    = False
 
           # Gaussian Transform
           self.apply_gauss = False
@@ -38,7 +39,7 @@ class Config:
           self.all_subjects    = np.array([1,2,3,4,6,7,8,9,12,13,14,15,16,17,19])
           self.valid_subjects  = []
           self.test_subjects   = []
-          self.conditions      = [0,1]
+          self.conditions      = [2,3]
 
           if model == 'capsnet':
             # CNN (cnn)

@@ -33,27 +33,12 @@ trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, arg
 if config.apply_gauss:
    gauss_obj = GaussianFourierFeatureTransform(1, config.mapping_size, 10)
 net = model_loader(config,args.kernel_size)
-#net.load_state_dict(torch.load('./checkpoint/Net.pth',map_location=args.device))
-#net = torch.nn.DataParallel(net)
-#net = net.module
 net = net.to(args.device)
-'''
-for m in net.modules():
-    if isinstance(m, nn.Conv2d):
-#       m.weight.data.normal_(0.0,2/np.sqrt(m.in_channels*m.out_channels*9))
-       m.weight.data.normal_(0, 0.05)
-       m.bias.data.fill_(0.0)
-    if type(m)==nn.Linear:
-#       m.weight.data.normal_(0.0,2/np.sqrt(m.in_features))
-       torch.nn.init.eye_(m.weight)
-       m.bias.data.fill_(0.0)
-'''
 net.eval()
 
 pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
 print(f'Number of Parameters: {pytorch_total_params}')
 optimizer = optim.AdamW(net.parameters(), lr=args.lr,  weight_decay=args.wd)
-#optimizer = torch.optim.RMSprop(net.parameters(), lr=args.lr)
 
 cudnn.benchmark = True
 
@@ -72,13 +57,9 @@ def train():
            inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
         if config.model_type == 'eegnet':
            inputs = inputs.permute(0,2,1)
-#           inputs = inputs.unsqueeze(1)
- #          inputs = inputs.reshape(-1,1,config.window_len,config.n_channels)
         optimizer.zero_grad()
         if config.model_type == 'capsnet':
            outputs, reconstructions, masked = net(inputs)
-#           onehot_tensor = onehot_encode(targets, args.device)
-#           loss = net.loss(inputs, outputs, targets, reconstructions)
            outputs = outputs.reshape(-1,1)
            outputs = nn.functional.softmax(outputs,dim=1)
         else:
@@ -87,16 +68,13 @@ def train():
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
-#        predicted = outputs.round()
         _, predicted = outputs.max(1)
         total += targets.size(0)
-#        if config.model_type == 'capsnet':
- #          correct += sum(np.argmax(masked.data.cpu().numpy(), 1) == np.argmax(onehot_tensor.data.cpu().numpy(), 1))
-  #      else:
         correct += predicted.eq(targets).sum().item()
 
         progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+    print(f'Total: {total}')
     return (correct/total)
 
 for epoch in range(1,args.n_epochs):
@@ -108,7 +86,6 @@ for epoch in range(1,args.n_epochs):
     if epoch == 1:
        best_acc = clean_acc
     if (clean_acc >= best_acc):
-#    if epoch%10==0:
        print('Saving..')
        torch.save(net.state_dict(), './checkpoint/Net.pth')
        best_acc = clean_acc

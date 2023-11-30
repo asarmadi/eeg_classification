@@ -30,15 +30,43 @@ print(f'Train Subjects: {config.train_subjects}')
 
 path = config.file_path + "SF_Img_MLdata.mat"
 
-def generate_data(data_type):
-    u = 0
+def find_subjects_list(data_type):
     if data_type == 'train':
         subjects_list = config.train_subjects
     elif data_type == 'test':
         subjects_list = config.test_subjects
     elif data_type == 'valid':
         subjects_list = config.valid_subjects
-    n_samples = len(subjects_list)*config.n_windows*config.n_trial*len(config.conditions)
+    return subjects_list
+
+def find_num_samples(num_trials, sub_list):
+    n_samples = 0
+    for sub in sub_list:
+        for cond in config.conditions:
+            n_samples += config.n_windows*num_trials[sub][cond-2]
+    return n_samples
+
+def find_num_trials(data_type):
+    data_dict = {}
+    f = h5py.File(path,'r')
+    subjects_list = find_subjects_list(data_type)
+    for subject in subjects_list:
+        trials_shape = []
+        for condition in config.conditions:
+            ref = f["data"][condition][subject]
+            eeg = np.array(f[ref])
+            trials_shape.append(eeg.shape[0])
+        data_dict[subject]=trials_shape
+    return data_dict
+
+
+def generate_data(data_type):
+    u = 0
+    subjects_list = find_subjects_list(data_type)
+    trials_list   = find_num_trials(data_type)
+
+    n_samples = find_num_samples(trials_list,subjects_list)
+    print(n_samples)
     if args.stft:
         data_shape = (n_samples, config.n_channels, config.freq_cut, config.nTimeBins)
         path_name_str = '2d'
@@ -46,7 +74,7 @@ def generate_data(data_type):
         data_shape = (n_samples, config.window_len, config.n_channels)
         path_name_str = '1d'
     f_data = h5py.File(config.file_path+data_type+'_'+path_name_str+'.h5', "w")
-    f_data.create_dataset("data",    data_shape)
+    f_data.create_dataset("data",    data_shape  )
     f_data.create_dataset("label",   (n_samples,))
     f_data.create_dataset("subject", (n_samples,))
     f_data.create_dataset("trial",   (n_samples,))
@@ -54,11 +82,13 @@ def generate_data(data_type):
     f = h5py.File(path,'r')
 
     for subject in subjects_list:
-        for condition in config.conditions: # 0, 1 correpond to Flex First, and Extend First
+        for condition in config.conditions:
+            ref = f["data"][condition][subject]
+            eeg = np.array(f[ref])
             print(f'{data_type} subject#: {subject}, condition: {condition}')
             ref = f["data"][condition][subject]
             eeg = np.array(f[ref])
-            for i_trial in range(config.n_trial):
+            for i_trial in range(eeg.shape[0]):
                 eeg_scaled = eeg[i_trial,:,:]
                 eeg_scaled = preprocess_signal(config,eeg_scaled)
                 for j_windows in range(config.n_windows):
@@ -68,11 +98,10 @@ def generate_data(data_type):
                     else:
                         f_data["data"][u,...] = eeg_norm
                     f_data["subject"][u]  = subject
-                    f_data["label"][u]    = condition
+                    f_data["label"][u]    = condition - 2
                     f_data["trial"][u]    = i_trial
                     u += 1
     f_data.close()
-
 
 for dataSet in data_sets:
     generate_data(dataSet)

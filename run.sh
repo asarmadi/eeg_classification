@@ -1,6 +1,6 @@
 LR=0.001
 WD=0.0
-BATCH_SIZE=64
+BATCH_SIZE=128
 KERNEL_SIZE=9
 NEPOCHS=51
 MODEL_TYPE=eegnet
@@ -12,7 +12,7 @@ if [ $STFT -eq 1 ]; then
   APPLY_STFT_ARG="--stft"
 fi
 
-for TARGET in 2 3 4 6 7 8 9 12 13 14 15 16 17 19; do
+for TARGET in 1 2 3 4 6 7 8 9 12 13 14 15 16 17 19 1; do
 TEST_TARGET=${TARGET}
 
 python mat2h5Conversion.py --target_test ${TEST_TARGET} ${APPLY_STFT_ARG}
