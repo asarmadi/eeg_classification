@@ -4,10 +4,10 @@ import torch
 #import os
 
 class HDF5Dataset(torch.utils.data.Dataset):
-    def __init__(self, path):
+    def __init__(self, path, add_trial=False):
         self.file_path       = path
-#        print(os.getcwd())
- #       input('enter')
+        self.add_trial       = add_trial
+
         with h5py.File(self.file_path, 'r') as file:
             self.dataset_len = len(file["data"])
 
@@ -16,8 +16,12 @@ class HDF5Dataset(torch.utils.data.Dataset):
         self.dataset = data["data"]
         self.label   = data["label"]
         self.subject = data["subject"]
+        if self.add_trial:
+           self.trial = data["trial"]
+           return (self.dataset[index],self.label[index],self.subject[index],data["trial"][index])
 
         return (self.dataset[index],self.label[index],self.subject[index])
 
     def __len__(self):
         return self.dataset_len
+

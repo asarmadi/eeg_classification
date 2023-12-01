@@ -17,7 +17,7 @@ args = parser.parse_args()
 best_acc = 0
 
 config = Config(args.model_type)
-trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers, args.stft, config.apply_valid_set)
+trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers, args.stft, config.apply_valid_set,args.maj_vote)
 config.device=args.device
 config.maj_vote = args.maj_vote
 net = model_loader(config, args.kernel_size)
@@ -32,14 +32,14 @@ net.eval()
 cudnn.benchmark = True
 
 print("Test Performance:")
-test_acc, target_test  = test(net, testloader, config)
+test_acc, target_test  = test(net, testloader, config, "test")
 
 if config.apply_valid_set:
    print("Validation Performance:")
-   valid_acc, target_valid = test(net, validloader, config)
+   valid_acc, target_valid = test(net, validloader, config, "valid")
 
 print("Train Performance:")
-train_acc, _ = test(net, trainloader, config)
+train_acc, _ = test(net, trainloader, config, "train")
 
 header_name = 'Name,Acc,Target'
 if config.apply_valid_set:

@@ -14,7 +14,11 @@ class Config:
           self.preprocess_scale = False
           self.device       = 'cuda:0'
           self.apply_valid_set = False
-          self.maj_vote    = False
+
+
+          # Majority Voting Properties
+          self.maj_vote    = True
+          self.threshold   = 0.6
 
           # Gaussian Transform
           self.apply_gauss = False

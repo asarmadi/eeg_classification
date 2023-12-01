@@ -18,6 +18,7 @@ from utils.hdf5_dataset import *
 import numpy as np
 from scipy import signal
 import pandas as pd
+import tqdm
 from utils.gaussianTrans import GaussianFourierFeatureTransform
 
 
@@ -28,9 +29,9 @@ TOTAL_BAR_LENGTH = 65.
 last_time = time.time()
 begin_time = last_time
 
-def test(model, dataloader, config):
+def test(model, dataloader, config, name_str):
     if config.maj_vote:
-       return test_majority_voting(model, dataloader, config)
+       return test_majority_voting(model, dataloader, config, name_str)
     model.eval()
     correct = 0
     total = 0
@@ -61,7 +62,7 @@ def test(model, dataloader, config):
         print('Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
         return 100.*correct/total, subjects.unique().numpy()
 
-def test_majority_voting(model, dataloader, config):
+def test_majority_voting(model, dataloader, config, name_str):
     columns = []
     columns.append('subject')
     columns.append('label')
@@ -75,7 +76,7 @@ def test_majority_voting(model, dataloader, config):
        gauss_obj = GaussianFourierFeatureTransform(1, config.mapping_size, 10)
     with torch.no_grad():
         for batch_idx, (inputs, targets, subjects, trials) in enumerate(dataloader):
-            inputs, targets = inputs.to(config.device), targets.to(config.device)
+            inputs, targets, trials = inputs.to(config.device), targets.to(config.device), trials.to(config.device)
             if config.apply_gauss:
                  inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
             else:
@@ -93,15 +94,32 @@ def test_majority_voting(model, dataloader, config):
             #predicted = outputs.round()
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
-            hh = torch.cat((subjects, targets.reshape(-1,1), predicted.reshape(-1,1),trials.reshape(-1,1) ), dim=1)
+            hh = torch.cat((subjects.reshape(-1,1).to(config.device), targets.reshape(-1,1), predicted.reshape(-1,1),trials.reshape(-1,1) ), dim=1)
             results = torch.cat((results, hh))
             progress_bar(batch_idx, len(dataloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
 
         df = pd.DataFrame(results.cpu().numpy(),columns=columns)
-        df.to_csv('./csv_out/'+str(subjects.unique().numpy()[0])+'.csv', encoding='utf-8', index=False)
+        df.to_csv('./csv_out/'+name_str+'_'+str(subjects.unique().numpy()[0])+'.csv', encoding='utf-8', index=False)
 
-        print('Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
-        return 100.*correct/total, subjects.unique().numpy()
+        subjects = df['subject'].unique()
+        trials = df['trial'].unique()
+        labels = df['label'].unique()
+        print(subjects)
+        print(f"Shapes: S:{len(subjects)}, T:{len(trials)}, L:{len(labels)}")
+        total = 0
+        correct = 0
+        with tqdm.tqdm(total=len(df)) as pbar:
+           for sub in subjects:
+               for tr in trials:
+                   for label in labels:
+                       rows = df[(df['subject'] == sub) & (df['trial'] == tr) & (df['label'] == label)]
+                       correct_pred = rows[rows['label'] == rows['prediction']]
+                       if len(correct_pred) >= config.threshold*len(rows['label']):
+                          correct += 1
+                       total += 1
+
+    print('Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
+    return 100.*correct/total, subjects
 
 
 def count_num_classes(dataloader, label):
@@ -162,15 +180,15 @@ def model_loader(config, kernel_size):
     elif config.model_type == 'brainC':
        return ShallowFBCSPNet(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
 
-def data_loader(batch_size, num_workers, stft, valid_check):
+def data_loader(batch_size, num_workers, stft, valid_check, add_trial=False):
     if stft:
        name_str = '2d'
     else:
        name_str = '1d'
-    trainset = HDF5Dataset('./data/train_'+name_str+'.h5')
+    trainset = HDF5Dataset('./data/train_'+name_str+'.h5', add_trial=add_trial)
     if valid_check:
-       validset = HDF5Dataset('./data/valid_'+name_str+'.h5')
-    testset  = HDF5Dataset('./data/test_'+name_str+'.h5')
+       validset = HDF5Dataset('./data/valid_'+name_str+'.h5', add_trial=add_trial)
+    testset  = HDF5Dataset('./data/test_'+name_str+'.h5', add_trial=add_trial)
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=False)
     testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)
