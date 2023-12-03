@@ -14,6 +14,7 @@ class Config:
           self.preprocess_scale = False
           self.device       = 'cuda:0'
           self.apply_valid_set = False
+          self.realVSFake   = True
 
 
           # Majority Voting Properties
@@ -43,7 +44,10 @@ class Config:
           self.all_subjects    = np.array([1,2,3,4,6,7,8,9,12,13,14,15,16,17,19])
           self.valid_subjects  = []
           self.test_subjects   = []
-          self.conditions      = [2,3]
+          if self.realVSFake:
+             self.conditions      = [0,1,2,3]
+          else:
+             self.conditions      = [2,3]
 
           if model == 'capsnet':
             # CNN (cnn)

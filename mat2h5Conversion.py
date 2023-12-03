@@ -78,6 +78,7 @@ def generate_data(data_type):
     f_data.create_dataset("label",   (n_samples,))
     f_data.create_dataset("subject", (n_samples,))
     f_data.create_dataset("trial",   (n_samples,))
+    f_data.create_dataset("condition",   (n_samples,))
 
     f = h5py.File(path,'r')
 
@@ -98,8 +99,15 @@ def generate_data(data_type):
                     else:
                         f_data["data"][u,...] = eeg_norm
                     f_data["subject"][u]  = subject
-                    f_data["label"][u]    = condition - 2
+                    if config.realVSFake:
+                       if condition == 0 or condition == 1:
+                          f_data["label"][u]    = 0
+                       else:
+                          f_data["label"][u]    = 1
+                    else:
+                       f_data["label"][u]    = condition - 2
                     f_data["trial"][u]    = i_trial
+                    f_data["condition"][u]    = condition
                     u += 1
     f_data.close()
 
