@@ -7,7 +7,6 @@ from numpy import array
 import pandas as pd
 
 config = Config()
-config.all_subjects = array([1,2,3,4,6,7,8])
 color_codes = ['-g.', '-b.', '-r.']
 if config.apply_valid_set:
    datasets = ['train','test','valid']
