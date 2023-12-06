@@ -59,6 +59,8 @@ total   = 0
 plt.figure(1)
 
 for i, dataset in enumerate(datasets):
+    correct = 0
+    total   = 0
     for train_idx in config.all_subjects:
         results = pd.read_csv(filePath+dataset+"_"+str(train_idx)+".0.csv", encoding='utf-8')
         correct_pred = results[results['label'] == results['prediction']]
