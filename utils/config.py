@@ -15,7 +15,7 @@ class Config:
           self.device       = 'cuda:0'
           self.apply_valid_set = False
           self.realVSFake   = True
-          self.data_path    = 'Obs'    # Img vs Obs
+          self.data_path    = 'Img'    # Img vs Obs
 
 
           # Majority Voting Properties
