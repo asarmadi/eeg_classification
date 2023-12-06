@@ -67,7 +67,7 @@ for i, dataset in enumerate(datasets):
         correct += len(correct_pred)
         total   += len(results['label'])
         acc[train_idx] = correct/total*100.
-    plt.plot(list(train_acc_major.keys()), list(train_acc_major.values()), color_codes[i], label=dataset.capitalize())
+    plt.plot(list(acc.keys()), list(acc.values()), color_codes[i], label=dataset.capitalize())
 if config.realVSFake:
    plt.title("First vs Third")
 plt.legend()
