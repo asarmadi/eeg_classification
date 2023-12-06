@@ -20,7 +20,7 @@ class Config:
 
           # Majority Voting Properties
           self.maj_vote    = True
-          self.threshold   = 0.6
+          self.threshold   = 0.5
 
           # Gaussian Transform
           self.apply_gauss = False

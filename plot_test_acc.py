@@ -1,5 +1,4 @@
 import os
-import csv
 import matplotlib
 import matplotlib.pyplot as plt
 from utils.config import Config
@@ -19,6 +18,7 @@ test_acc_major  = {}
 valid_acc_major = {}
 train_acc_major = {}
 
+'''
 for train_idx in config.all_subjects:
     with open(filePath+"test_results_"+str(train_idx)+".0.csv", newline='') as f:
            data = list(csv.reader(f))
@@ -39,15 +39,13 @@ if config.apply_valid_set:
 
 
 plt.figure(0)
-plt.plot(list(train_acc_major.keys()), list(train_acc_major.values()), '-r.', label='Train (Major Voting)')
-plt.plot(list(test_acc_major.keys()),  list(test_acc_major.values()),  '-b.', label='Test (Major Voting)')
+plt.plot([str(key_val) for key_val in train_acc_major.keys()], list(train_acc_major.values()), '-r.', label='Train (Major Voting)')
+plt.plot([str(key_val) for key_val in test_acc_major.keys()],  list(test_acc_major.values()),  '-b.', label='Test (Major Voting)')
 if config.apply_valid_set:
-   plt.plot(list(valid_acc_major.keys()), list(valid_acc_major.values()), '-g.', label='Valid')
-#if config.realVSFake:
-#   plt.title("First vs Third")
-#plt.legend()
-#plt.tight_layout()
-#plt.savefig('./Figs/Accs_major.png')
+   plt.plot([str(key_val) for key_val in valid_acc_major.keys()], list(valid_acc_major.values()), '-g.', label='Valid')
+
+print(f"Test Acc Major: {test_acc_major}")
+'''
 
 
 filePath = './csv_out/'
@@ -55,7 +53,7 @@ filePath = './csv_out/'
 acc     = {}
 correct = 0
 total   = 0
-#plt.figure(1)
+plt.figure(1)
 
 for i, dataset in enumerate(datasets):
     correct = 0
@@ -66,14 +64,51 @@ for i, dataset in enumerate(datasets):
         correct += len(correct_pred)
         total   += len(results['label'])
         acc[train_idx] = correct/total*100.
-    print(list(acc.keys()))
-    plt.plot(list(acc.keys()), list(acc.values()), color_codes[i], label=dataset.capitalize())
+    plt.plot([str(key_val) for key_val in acc.keys()], list(acc.values()), color_codes[i], label=dataset.capitalize())
 if config.realVSFake:
    plt.title("First vs Third")
+print(acc.keys())
+print([str(key_val) for key_val in acc.keys()])
+
+
+
+print(f"Test Acc: {acc}")
+
+
+
+for i, dataset in enumerate(datasets):
+    correct = 0
+    total   = 0
+    for sub in config.all_subjects:
+        df = pd.read_csv(filePath+dataset+"_"+str(sub)+".0.csv", encoding='utf-8')
+        trials = df['trial'].unique()
+        labels = df['label'].unique()
+        conditions = df['condition'].unique()
+        #print(f"Shapes: T:{len(trials)}, L:{len(labels)}, C:{len(conditions)}")
+        correct = 0
+        total = 0
+        for tr in trials:
+            for condition in conditions:
+                rows = df[(df['subject'] == sub) & (df['trial'] == tr) & (df['condition'] == condition)]
+                correct_pred = rows[rows['label'] == rows['prediction']]
+                if len(correct_pred) >= config.threshold*len(rows['label']):
+                   correct += 1
+                total += 1
+        test_acc_major[sub] = 100.*correct/total
+
+plt.plot([str(key_val) for key_val in test_acc_major.keys()],  list(test_acc_major.values()),  '-b.', label='Test (Major Voting)')
+
+plt.xticks([str(key_val) for key_val in acc.keys()])
+plt.ylabel("Accuracy (%)")
+plt.xlabel("Subject in Test set")
 plt.legend()
 plt.tight_layout()
 plt.savefig('./Figs/Accs.png')
 
+import numpy as np
+print(acc)
+print(np.mean(list(acc.values())), np.std(list(acc.values())))
 
-
+print(test_acc_major)
+print(np.mean(list(test_acc_major.values())), np.std(list(test_acc_major.values())))
 

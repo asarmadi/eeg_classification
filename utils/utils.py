@@ -90,13 +90,12 @@ def test_majority_voting(model, dataloader, config, name_str):
         with tqdm.tqdm(total=len(df)) as pbar:
            for sub in subjects:
                for tr in trials:
-                   for label in labels:
-                       for condition in conditions:
-                           rows = df[(df['subject'] == sub) & (df['trial'] == tr) & (df['label'] == label) & (df['condition'] == condition)]
-                           correct_pred = rows[rows['label'] == rows['prediction']]
-                           if len(correct_pred) >= config.threshold*len(rows['label']):
-                              correct += 1
-                           total += 1
+                   for condition in conditions:
+                       rows = df[(df['subject'] == sub) & (df['trial'] == tr) & (df['condition'] == condition)]
+                       correct_pred = rows[rows['label'] == rows['prediction']]
+                       if len(correct_pred) >= config.threshold*len(rows['label']):
+                          correct += 1
+                       total += 1
 
     print('Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
     return 100.*correct/total, subjects
