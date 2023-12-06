@@ -40,19 +40,7 @@ def test(model, dataloader, config, name_str):
     with torch.no_grad():
         for batch_idx, (inputs, targets, subjects) in enumerate(dataloader):
             inputs, targets = inputs.to(config.device), targets.to(config.device)
-            if config.apply_gauss:
-                 inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
-            else:
-                 inputs = inputs.permute(0,2,1)
-#                 inputs = inputs.reshape(-1,1,config.window_len,config.n_channels)
-
-            if config.model_type == 'capsnet':
-                 outputs, reconstructions, masked = model(inputs)
-                 outputs = outputs.reshape(-1,1)
-                 outputs = torch.nn.functional.softmax(outputs,dim=1)
-#                 onehot_tensor = onehot_encode(targets, config.device)
-            else:
-                 outputs = model(inputs)
+            outputs = get_outputs(model, inputs, config)
             _, predicted = outputs.max(1)
             #predicted = outputs.round()
             total += targets.size(0)
@@ -68,6 +56,7 @@ def test_majority_voting(model, dataloader, config, name_str):
     columns.append('label')
     columns.append('prediction')
     columns.append('trial')
+    columns.append('condition')
     model.eval()
     correct = 0
     total = 0
@@ -75,26 +64,15 @@ def test_majority_voting(model, dataloader, config, name_str):
     if config.apply_gauss:
        gauss_obj = GaussianFourierFeatureTransform(1, config.mapping_size, 10)
     with torch.no_grad():
-        for batch_idx, (inputs, targets, subjects, trials) in enumerate(dataloader):
-            inputs, targets, trials = inputs.to(config.device), targets.to(config.device), trials.to(config.device)
-            if config.apply_gauss:
-                 inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
-            else:
-                 inputs = inputs.permute(0,2,1)
-#                 inputs = inputs.reshape(-1,1,config.window_len,config.n_channels)
-
-            if config.model_type == 'capsnet':
-                 outputs, reconstructions, masked = model(inputs)
-                 outputs = outputs.reshape(-1,1)
-                 outputs = torch.nn.functional.softmax(outputs,dim=1)
-#                 onehot_tensor = onehot_encode(targets, config.device)
-            else:
-                 outputs = model(inputs)
+        for batch_idx, (inputs, targets, subjects, trials, conditions) in enumerate(dataloader):
+            inputs, targets, trials, conditions = inputs.to(config.device), targets.to(config.device), trials.to(config.device), conditions.to(config.device)
+            outputs = get_outputs(model, inputs, config)
             _, predicted = outputs.max(1)
             #predicted = outputs.round()
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
-            hh = torch.cat((subjects.reshape(-1,1).to(config.device), targets.reshape(-1,1), predicted.reshape(-1,1),trials.reshape(-1,1) ), dim=1)
+            hh = torch.cat((subjects.reshape(-1,1).to(config.device), targets.reshape(-1,1), predicted.reshape(-1,1),\
+                            trials.reshape(-1,1),conditions.reshape(-1,1) ), dim=1)
             results = torch.cat((results, hh))
             progress_bar(batch_idx, len(dataloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
 
@@ -104,23 +82,38 @@ def test_majority_voting(model, dataloader, config, name_str):
         subjects = df['subject'].unique()
         trials = df['trial'].unique()
         labels = df['label'].unique()
+        conditions = df['condition'].unique()
         print(subjects)
-        print(f"Shapes: S:{len(subjects)}, T:{len(trials)}, L:{len(labels)}")
+        print(f"Shapes: S:{len(subjects)}, T:{len(trials)}, L:{len(labels)}, C:{len(conditions)}")
         total = 0
         correct = 0
         with tqdm.tqdm(total=len(df)) as pbar:
            for sub in subjects:
                for tr in trials:
                    for label in labels:
-                       rows = df[(df['subject'] == sub) & (df['trial'] == tr) & (df['label'] == label)]
-                       correct_pred = rows[rows['label'] == rows['prediction']]
-                       if len(correct_pred) >= config.threshold*len(rows['label']):
-                          correct += 1
-                       total += 1
+                       for condition in conditions:
+                           rows = df[(df['subject'] == sub) & (df['trial'] == tr) & (df['label'] == label) & (df['condition'] == condition)]
+                           correct_pred = rows[rows['label'] == rows['prediction']]
+                           if len(correct_pred) >= config.threshold*len(rows['label']):
+                              correct += 1
+                           total += 1
 
     print('Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
     return 100.*correct/total, subjects
 
+
+def get_outputs(net, inputs, config):
+    if config.apply_gauss:
+       inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
+    if config.model_type == 'eegnet' or config.model_type == 'shalloweeg':
+       inputs = inputs.permute(0,2,1)
+    if config.model_type == 'capsnet':
+       outputs, reconstructions, masked = net(inputs)
+       outputs = outputs.reshape(-1,1)
+       outputs = nn.functional.softmax(outputs,dim=1)
+    else:
+       outputs = net(inputs)
+    return outputs
 
 def count_num_classes(dataloader, label):
     n_all_samples, n_label_samples = 0, 0
@@ -177,7 +170,7 @@ def model_loader(config, kernel_size):
        return Conv1D(config, kernel_size)
     elif config.model_type == 'eegnet':
        return EEGNetv4(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len)
-    elif config.model_type == 'brainC':
+    elif config.model_type == 'shalloweeg':
        return ShallowFBCSPNet(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
 
 def data_loader(batch_size, num_workers, stft, valid_check, add_trial=False):

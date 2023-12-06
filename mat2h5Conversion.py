@@ -28,7 +28,7 @@ else:
 print(f'Test Subjects:  {config.test_subjects}')
 print(f'Train Subjects: {config.train_subjects}')
 
-path = config.file_path + "SF_Img_MLdata.mat"
+path = config.file_path + "SF_"+config.data_path+"_MLdata.mat"
 
 def find_subjects_list(data_type):
     if data_type == 'train':
@@ -43,7 +43,7 @@ def find_num_samples(num_trials, sub_list):
     n_samples = 0
     for sub in sub_list:
         for cond in config.conditions:
-            n_samples += config.n_windows*num_trials[sub][cond-2]
+            n_samples += config.n_windows*num_trials[sub][cond]
     return n_samples
 
 def find_num_trials(data_type):
@@ -71,7 +71,7 @@ def generate_data(data_type):
         data_shape = (n_samples, config.n_channels, config.freq_cut, config.nTimeBins)
         path_name_str = '2d'
     else:
-        data_shape = (n_samples, config.window_len, config.n_channels)
+        data_shape = (n_samples, config.n_channels, config.window_len)
         path_name_str = '1d'
     f_data = h5py.File(config.file_path+data_type+'_'+path_name_str+'.h5', "w")
     f_data.create_dataset("data",    data_shape  )
@@ -97,7 +97,7 @@ def generate_data(data_type):
                     if args.stft:
                         f_data["data"][u,...] = spectrogram_per_channel(eeg_norm, config)
                     else:
-                        f_data["data"][u,...] = eeg_norm
+                        f_data["data"][u,...] = eeg_norm.T
                     f_data["subject"][u]  = subject
                     if config.realVSFake:
                        if condition == 0 or condition == 1:

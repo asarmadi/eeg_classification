@@ -15,6 +15,7 @@ class Config:
           self.device       = 'cuda:0'
           self.apply_valid_set = False
           self.realVSFake   = True
+          self.data_path    = 'Obs'    # Img vs Obs
 
 
           # Majority Voting Properties
@@ -26,7 +27,7 @@ class Config:
           self.mapping_size = 3
 
           # Each segement
-          self.window_len  = 1600
+          self.window_len  = 1900
           self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
@@ -64,8 +65,8 @@ class Config:
 
             # Digit Capsule (dc)
             self.dc_num_capsules = 1
-            self.dc_num_routes = self.pc_num_routes
-            self.dc_in_channels = 18
+            self.dc_num_routes   = self.pc_num_routes
+            self.dc_in_channels  = 18
             self.dc_out_channels = 1
 
             # Decoder

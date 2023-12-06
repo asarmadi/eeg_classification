@@ -25,7 +25,7 @@ class LSTMConv(nn.Module):
         self.bn1 = nn.BatchNorm1d(128)
         self.dro = nn.Dropout(0.1)
         self.fc2 = nn.Linear(128, config.n_classes)
-        self.sigmoid = nn.Sigmoid()
+        self.sigmoid = nn.LogSoftmax()
         self.relu    = nn.ReLU()
 
     def forward(self, x):

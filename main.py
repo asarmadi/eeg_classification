@@ -53,17 +53,10 @@ def train():
     total = 0
     for batch_idx, (inputs, targets, _) in enumerate(trainloader):
         inputs, targets = inputs.to(args.device), targets.to(args.device)
-        if config.apply_gauss:
-           inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
-        if config.model_type == 'eegnet':
-           inputs = inputs.permute(0,2,1)
+
         optimizer.zero_grad()
-        if config.model_type == 'capsnet':
-           outputs, reconstructions, masked = net(inputs)
-           outputs = outputs.reshape(-1,1)
-           outputs = nn.functional.softmax(outputs,dim=1)
-        else:
-           outputs = net(inputs)
+        outputs = get_outputs(net, inputs,config)
+
         loss = criterion(outputs, targets.long())
         loss.backward()
         optimizer.step()
@@ -92,7 +85,4 @@ for epoch in range(1,args.n_epochs):
 
 
     scheduler.step(epoch)
-
-
-
 

@@ -17,8 +17,8 @@ class HDF5Dataset(torch.utils.data.Dataset):
         self.label   = data["label"]
         self.subject = data["subject"]
         if self.add_trial:
-           self.trial = data["trial"]
-           return (self.dataset[index],self.label[index],self.subject[index],data["trial"][index])
+
+           return (self.dataset[index],self.label[index],self.subject[index],data["trial"][index],data["condition"][index])
 
         return (self.dataset[index],self.label[index],self.subject[index])
 
