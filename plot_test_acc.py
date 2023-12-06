@@ -8,7 +8,7 @@ import pandas as pd
 
 config = Config()
 config.all_subjects = array([1,2,3,4,6,7,8])
-color_codes = ['-r.', '-b.', '-g.']
+color_codes = ['-g.', '-b.', '-r.']
 if config.apply_valid_set:
    datasets = ['train','test','valid']
 else:
@@ -40,15 +40,15 @@ if config.apply_valid_set:
 
 
 plt.figure(0)
-plt.plot(list(train_acc_major.keys()), list(train_acc_major.values()), '-r.', label='Train')
-plt.plot(list(test_acc_major.keys()),  list(test_acc_major.values()),  '-b.', label='Test')
+plt.plot(list(train_acc_major.keys()), list(train_acc_major.values()), '-r.', label='Train (Major Voting)')
+plt.plot(list(test_acc_major.keys()),  list(test_acc_major.values()),  '-b.', label='Test (Major Voting)')
 if config.apply_valid_set:
    plt.plot(list(valid_acc_major.keys()), list(valid_acc_major.values()), '-g.', label='Valid')
-if config.realVSFake:
-   plt.title("First vs Third")
-plt.legend()
-plt.tight_layout()
-plt.savefig('./Figs/Accs_major.png')
+#if config.realVSFake:
+#   plt.title("First vs Third")
+#plt.legend()
+#plt.tight_layout()
+#plt.savefig('./Figs/Accs_major.png')
 
 
 filePath = './csv_out/'
@@ -56,7 +56,7 @@ filePath = './csv_out/'
 acc     = {}
 correct = 0
 total   = 0
-plt.figure(1)
+#plt.figure(1)
 
 for i, dataset in enumerate(datasets):
     correct = 0
