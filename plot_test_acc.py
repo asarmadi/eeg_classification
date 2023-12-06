@@ -23,10 +23,10 @@ train_acc_major = {}
 for train_idx in config.all_subjects:
     with open(filePath+"test_results_"+str(train_idx)+".0.csv", newline='') as f:
            data = list(csv.reader(f))
-           train_acc_major[data[2][2][:-2]] = float(data[1][1])
-           test_acc_major[data[2][2][:-2]]  = float(data[2][1])
+           train_acc_major[data[2][2][1:-2]] = float(data[1][1])
+           test_acc_major[data[2][2][1:-2]]  = float(data[2][1])
            if config.apply_valid_set:
-              valid_acc_major[data[2][2][:-2]] = float(data[3][1])
+              valid_acc_major[data[2][2][1:-2]] = float(data[3][1])
 
 print(array([train_acc_major[k] for k in train_acc_major]).mean())
 print(array([train_acc_major[k] for k in train_acc_major]).std())
