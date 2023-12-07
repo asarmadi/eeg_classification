@@ -182,7 +182,7 @@ def data_loader(batch_size, num_workers, stft, valid_check, add_trial=False):
        validset = HDF5Dataset('./data/valid_'+name_str+'.h5', add_trial=add_trial)
     testset  = HDF5Dataset('./data/test_'+name_str+'.h5', add_trial=add_trial)
 
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=False)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=True)
     testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)
     if valid_check:
        validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)

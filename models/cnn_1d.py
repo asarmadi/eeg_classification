@@ -15,10 +15,10 @@ class Conv1D(nn.Module):
         out_shape = (out_shape-kernel_size+1)//2
 
         self.fc1 = nn.Linear(4*config.n_channels*out_shape, config.n_classes)
-        self.sigmoid = nn.Sigmoid()
+        self.sigmoid = nn.LogSoftmax(dim=1)
 
     def forward(self, x):
-        out = self.conv_layer1(x.permute(0,2,1))
+        out = self.conv_layer1(x)
         out = self.conv_layer2(out)
         out = self.conv_layer3(out)
         out = out.reshape(-1, out.shape[1]*out.shape[2])

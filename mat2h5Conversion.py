@@ -69,9 +69,11 @@ def generate_data(data_type):
     print(n_samples)
     if args.stft:
         data_shape = (n_samples, config.n_channels, config.freq_cut, config.nTimeBins)
+        chunk_shape = (100, config.n_channels, config.freq_cut, config.nTimeBins)
         path_name_str = '2d'
     else:
         data_shape = (n_samples, config.n_channels, config.window_len)
+        chunk_shape = (100, config.n_channels, config.window_len)
         path_name_str = '1d'
     f_data = h5py.File(config.file_path+data_type+'_'+path_name_str+'.h5', "w")
     f_data.create_dataset("data",    data_shape  )

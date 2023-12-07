@@ -27,7 +27,7 @@ class Config:
           self.mapping_size = 3
 
           # Each segement
-          self.window_len  = 1900
+          self.window_len  = 1700
           self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
@@ -43,6 +43,7 @@ class Config:
           # Bad Subjects: [0,5,10,11,18]
           self.train_subjects  = []
           self.all_subjects    = np.array([1,2,3,4,6,7,8,9,12,13,14,15,16,17,19])
+#          self.all_subjects    = np.array([1,2,3,4])
           self.valid_subjects  = []
           self.test_subjects   = []
           if self.realVSFake:
