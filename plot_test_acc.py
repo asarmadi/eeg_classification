@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 from utils.config import Config
 from numpy import array
 import pandas as pd
+import numpy as np
 
 config = Config()
+config.all_subjects = np.array([1,2,3,4,6,7])
 color_codes = ['-g.', '-b.', '-r.']
 if config.apply_valid_set:
    datasets = ['train','test','valid']
