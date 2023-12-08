@@ -103,13 +103,13 @@ def test_majority_voting(model, dataloader, config, name_str):
 
 def get_outputs(net, inputs, config):
     if config.apply_gauss:
-       inputs = gauss_obj(inputs.reshape(-1,1,config.window_len,config.n_channels))
+       inputs = GaussianFourierFeatureTransform(inputs.reshape(-1,1,config.window_len,config.n_channels),config)
     if config.model_type == 'eegnet' or config.model_type == 'shalloweeg':
        inputs = inputs.permute(0,2,1)
     if config.model_type == 'capsnet':
        outputs, reconstructions, masked = net(inputs)
-       outputs = outputs.reshape(-1,1)
-       outputs = nn.functional.softmax(outputs,dim=1)
+       outputs = outputs.reshape(-1,config.n_classes)
+#       outputs = nn.functional.logsoftmax(outputs,dim=1)
     else:
        outputs = net(inputs)
     return outputs
@@ -171,6 +171,8 @@ def model_loader(config, kernel_size):
        return EEGNetv4(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len)
     elif config.model_type == 'shalloweeg':
        return ShallowFBCSPNet(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
+    else:
+       return False
 
 def data_loader(batch_size, num_workers, stft, valid_check, add_trial=False):
     if stft:

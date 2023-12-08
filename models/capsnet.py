@@ -63,6 +63,7 @@ class DigitCaps(nn.Module):
         self.in_channels  = in_channels
         self.num_routes   = num_routes
         self.num_capsules = num_capsules
+        self.logsoft = nn.LogSoftmax(dim=1)
 
         self.W = nn.Parameter(torch.randn(1, num_routes, num_capsules, out_channels, in_channels))
 
@@ -88,8 +89,8 @@ class DigitCaps(nn.Module):
             if iteration < num_iterations - 1:
                 a_ij = torch.matmul(u_hat.transpose(3, 4), torch.cat([v_j] * self.num_routes, dim=1))
                 b_ij = b_ij + a_ij.squeeze(4).mean(dim=0, keepdim=True)
-
-        return v_j.squeeze(1)
+        v_j = self.logsoft(v_j)
+        return v_j
 
     def squash(self, input_tensor):
         squared_norm = (input_tensor ** 2).sum(-1, keepdim=True)

@@ -54,6 +54,8 @@ class Config:
           if model == 'capsnet':
             # CNN (cnn)
             self.cnn_in_channels  = 1
+            if self.apply_gauss:
+               self.cnn_in_channels  = 2*self.mapping_size
             self.cnn_out_channels = 32
             self.cnn_kernel_size  = 9
 
@@ -67,8 +69,8 @@ class Config:
             # Digit Capsule (dc)
             self.dc_num_capsules = 1
             self.dc_num_routes   = self.pc_num_routes
-            self.dc_in_channels  = 18
-            self.dc_out_channels = 1
+            self.dc_in_channels  = 22
+            self.dc_out_channels = 2
 
             # Decoder
             self.input_width  = self.window_len

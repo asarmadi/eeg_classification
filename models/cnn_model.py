@@ -7,7 +7,11 @@ class Net(nn.Module):
     def __init__(self, config, kernel_size):
         super(Net, self).__init__()
         k1 = kernel_size
-        self.conv_layer1 = nn.Sequential(nn.Conv2d(1, 60, kernel_size=(k1,kernel_size)),
+        if config.apply_gauss:
+           in_channels = 2*config.mapping_size
+        else:
+           in_channels = 1
+        self.conv_layer1 = nn.Sequential(nn.Conv2d(in_channels, 60, kernel_size=(k1,kernel_size)),
                            nn.ReLU(inplace=True))
 #        h_shape = config.freq_cut
  #       w_shape = config.nTimeBins
@@ -48,7 +52,7 @@ class Net(nn.Module):
         self.lsf     = nn.LogSoftmax(dim=1)
 
     def forward(self, x):
-        x   = self.conv_layer1(x.unsqueeze(1))
+        x   = self.conv_layer1(x)
         x   = self.conv_layer2(x)
         x   = self.conv_layer3(x)
         x   = self.conv_layer4(x)

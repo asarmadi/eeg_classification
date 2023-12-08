@@ -9,8 +9,8 @@ class LSTMConv(nn.Module):
         self.num_layers  = config.layer_dim
         self.hidden_size = config.hidden_dim
         self.device      = config.device
-        self.lstm = nn.LSTM(config.n_channels, config.hidden_dim, config.layer_dim, batch_first=True, dropout=0.1)
-        h_shape = config.window_len
+        self.lstm = nn.LSTM(config.window_len, config.hidden_dim, config.layer_dim, batch_first=True, dropout=0.1)
+        h_shape = config.n_channels
 
         self.conv_layer1 = nn.Sequential(nn.Conv1d(config.hidden_dim, 8, kernel_size=kernel_size),nn.BatchNorm1d(8),nn.ReLU(inplace=True), nn.Dropout(0.1))
         h_shape = (h_shape - kernel_size + 1)
@@ -25,7 +25,7 @@ class LSTMConv(nn.Module):
         self.bn1 = nn.BatchNorm1d(128)
         self.dro = nn.Dropout(0.1)
         self.fc2 = nn.Linear(128, config.n_classes)
-        self.sigmoid = nn.LogSoftmax()
+        self.sigmoid = nn.LogSoftmax(dim=1)
         self.relu    = nn.ReLU()
 
     def forward(self, x):

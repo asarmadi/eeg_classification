@@ -30,8 +30,6 @@ config.stft=args.stft
 
 trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.stft, config.apply_valid_set)
 
-if config.apply_gauss:
-   gauss_obj = GaussianFourierFeatureTransform(1, config.mapping_size, 10)
 net = model_loader(config,args.kernel_size)
 net = net.to(args.device)
 net.eval()
