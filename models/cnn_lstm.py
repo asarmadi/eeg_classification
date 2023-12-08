@@ -9,19 +9,21 @@ class LSTMConv(nn.Module):
         self.num_layers  = config.layer_dim
         self.hidden_size = config.hidden_dim
         self.device      = config.device
-        self.lstm = nn.LSTM(config.window_len, config.hidden_dim, config.layer_dim, batch_first=True, dropout=0.1)
-        h_shape = config.n_channels
+        self.lstm        = nn.LSTM(config.n_channels, config.hidden_dim, config.layer_dim, batch_first=True, dropout=0.1)
+        h_shape          = config.window_len
 
-        self.conv_layer1 = nn.Sequential(nn.Conv1d(config.hidden_dim, 8, kernel_size=kernel_size),nn.BatchNorm1d(8),nn.ReLU(inplace=True), nn.Dropout(0.1))
-        h_shape = (h_shape - kernel_size + 1)
+        channel_size     = config.hidden_dim
 
-        self.conv_layer2 = nn.Sequential(nn.Conv1d(8, 8, kernel_size=kernel_size),nn.ReLU(inplace=True),nn.Dropout(0.1))
-        h_shape = (h_shape-kernel_size + 1)
+        self.conv_layer1 = nn.Sequential(nn.Conv1d(config.hidden_dim, channel_size, kernel_size=kernel_size),nn.BatchNorm1d(channel_size),nn.ReLU(inplace=True), nn.Dropout(0.1))
+        h_shape          = (h_shape - kernel_size + 1)
 
-        self.conv_layer3 = nn.Sequential(nn.Conv1d(8, 8, kernel_size=kernel_size),nn.ReLU(inplace=True),nn.Dropout(0.1))
-        h_shape = (h_shape-kernel_size+1)
+        self.conv_layer2 = nn.Sequential(nn.Conv1d(channel_size, channel_size, kernel_size=kernel_size),nn.ReLU(inplace=True),nn.Dropout(0.1))
+        h_shape          = (h_shape-kernel_size + 1)
 
-        self.fc1 = nn.Linear(8*h_shape, 128)
+        self.conv_layer3 = nn.Sequential(nn.Conv1d(channel_size, channel_size, kernel_size=kernel_size),nn.ReLU(inplace=True),nn.Dropout(0.1))
+        h_shape          = (h_shape-kernel_size+1)
+
+        self.fc1 = nn.Linear(channel_size*h_shape, 128)
         self.bn1 = nn.BatchNorm1d(128)
         self.dro = nn.Dropout(0.1)
         self.fc2 = nn.Linear(128, config.n_classes)
@@ -29,12 +31,16 @@ class LSTMConv(nn.Module):
         self.relu    = nn.ReLU()
 
     def forward(self, x):
+        x = x.permute(0,2,1)
+#        print(x.shape)
+ #       input('enter')
         h_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self.device) #hidden state
         c_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(self.device) #internal state
         # Propagate input through LSTM
-        output, (hn, cn) = self.lstm(x, (h_0, c_0)) #lstm with input, hidden, and internal state
+        out, (hn, cn) = self.lstm(x, (h_0, c_0)) #lstm with input, hidden, and internal state
 #        hn = hn.reshape(-1, self.num_layers*self.hidden_size) #reshaping the data for Dense layer next
-        out = self.relu(output)
+ #       print(out.shape, hn.shape, cn.shape)
+  #      input('enter')
         out = out.permute(0,2,1)
         out = self.conv_layer1(out)
         out = self.conv_layer2(out)
