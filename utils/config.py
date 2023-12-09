@@ -78,4 +78,4 @@ class Config:
 
           if 'lstm' in model:
             self.hidden_dim = 128
-            self.layer_dim  = 2
+            self.layer_dim  = 4
