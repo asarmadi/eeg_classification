@@ -13,6 +13,7 @@ from models.capsnet import CapsNet
 from models.lstm import LSTMClassifier
 from models.cnn_lstm import LSTMConv
 from models.cnn_1d import Conv1D
+from models.combined import Combined
 from braindecode.models import ShallowFBCSPNet, EEGNetv4
 from utils.hdf5_dataset import *
 import numpy as np
@@ -171,6 +172,8 @@ def model_loader(config, kernel_size):
        return EEGNetv4(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len)
     elif config.model_type == 'shalloweeg':
        return ShallowFBCSPNet(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
+    elif config.model_type == 'combined':
+       return Combined(config,kernel_size)
     else:
        return False
 

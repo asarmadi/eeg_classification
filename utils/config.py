@@ -76,6 +76,6 @@ class Config:
             self.input_width  = self.window_len
             self.input_height = self.n_channels
 
-          if 'lstm' in model:
+          if 'lstm' in model or 'combined' in model:
             self.hidden_dim = 128
-            self.layer_dim  = 4
+            self.layer_dim  = 2

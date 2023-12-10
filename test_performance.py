@@ -44,9 +44,9 @@ train_acc = 100.
 
 header_name = 'Name,Acc,Target'
 if config.apply_valid_set:
-   data = [['Train', train_acc, 0], ['Test', test_acc, target_test], ['Valid', valid_acc, target_valid] ]
+   data = [['Train', train_acc, 0], ['Test', test_acc, target_test[0]], ['Valid', valid_acc, target_valid[0]] ]
 else:
-   data = [['Train', train_acc, 0], ['Test', test_acc, target_test] ]
+   data = [['Train', train_acc, 0], ['Test', test_acc, target_test[0]] ]
 
 np.savetxt("./out/test_results_"+str(target_test[0])+".csv", data, delimiter=",", header=header_name, comments='', fmt="%s")
 
