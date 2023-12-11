@@ -33,7 +33,7 @@ class Combined(nn.Module):
                            nn.ReLU(inplace=True),
                            nn.Dropout(0.2),nn.MaxPool2d(2),nn.Flatten())
 
-        self.fc1 = nn.Linear(138144, config.n_classes)
+        self.fc1 = nn.Linear(103808, config.n_classes)
         self.sigmoid = nn.LogSoftmax(dim=1)
 #        self.relu    = nn.ReLU()
 
@@ -48,7 +48,7 @@ class Combined(nn.Module):
 
         out = torch.cat((out_lstm,out_conv), 1)
 #        print(out.shape)
-#        input('enter')
+ #       input('enter')
         out = self.sigmoid(self.fc1(out))
         return out
 

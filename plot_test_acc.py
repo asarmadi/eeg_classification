@@ -7,14 +7,14 @@ import pandas as pd
 import numpy as np
 
 config = Config()
-config.all_subjects = np.array([1,2,3,4,6,7])
+#config.all_subjects = np.array([1,2,3,4,6,7])
 color_codes = ['-g.', '-b.', '-r.']
 if config.apply_valid_set:
    datasets = ['train','test','valid']
 else:
    datasets = ['test']
 
-filePath = './out/'
+#filePath = './out/'
 
 test_acc_major  = {}
 valid_acc_major = {}
