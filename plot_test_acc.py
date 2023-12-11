@@ -63,8 +63,8 @@ for i, dataset in enumerate(datasets):
     for train_idx in config.all_subjects:
         results = pd.read_csv(filePath+dataset+"_"+str(train_idx)+".0.csv", encoding='utf-8')
         correct_pred = results[results['label'] == results['prediction']]
-        correct += len(correct_pred)
-        total   += len(results['label'])
+        correct = len(correct_pred)
+        total   = len(results['label'])
         acc[train_idx] = correct/total*100.
     plt.plot([str(key_val) for key_val in acc.keys()], list(acc.values()), color_codes[i], label=dataset.capitalize())
 if config.realVSFake:
