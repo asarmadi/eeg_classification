@@ -41,7 +41,10 @@ optimizer = optim.AdamW(net.parameters(), lr=args.lr,  weight_decay=args.wd)
 cudnn.benchmark = True
 
 #criterion = nn.BCELoss()
-criterion = nn.NLLLoss()
+if 'eeg' in config.model_type:
+   criterion = torch.nn.CrossEntropyLoss()
+else:
+   criterion = nn.NLLLoss()
 scheduler = MultiStepLR(optimizer, milestones=[200,300], gamma=0.1)
 
 def train():

@@ -16,24 +16,31 @@ class Combined(nn.Module):
            in_channels = 1
         channel_size   = config.hidden_dim
 
-        self.lstm      = nn.LSTM(config.n_channels, config.hidden_dim, config.layer_dim, batch_first=True, dropout=0.1)
-        self.lstm_conv = nn.Sequential(nn.Conv1d(config.hidden_dim, channel_size, kernel_size=kernel_size),nn.BatchNorm1d(channel_size),nn.ReLU(inplace=True), nn.Dropout(0.1),\
-                                        nn.Conv1d(channel_size, channel_size, kernel_size=kernel_size),nn.ReLU(inplace=True),nn.Dropout(0.1),nn.MaxPool1d(2),\
-                                        nn.Conv1d(channel_size, channel_size, kernel_size=kernel_size),nn.ReLU(inplace=True),nn.Dropout(0.1),nn.MaxPool1d(2),nn.Flatten())
+        self.lstm      = nn.LSTM(config.n_channels, config.hidden_dim, config.layer_dim, batch_first=True)
+        self.lstm_conv = nn.Sequential(nn.Conv1d(config.hidden_dim, channel_size, kernel_size=kernel_size),nn.BatchNorm1d(channel_size),nn.ReLU(inplace=True),\
+                                        nn.Conv1d(channel_size, channel_size, kernel_size=kernel_size),nn.ReLU(inplace=True),nn.MaxPool1d(2),\
+                                        nn.Conv1d(channel_size, channel_size, kernel_size=kernel_size),nn.ReLU(inplace=True),nn.MaxPool1d(2),
+                                        nn.Conv1d(channel_size, channel_size, kernel_size=kernel_size),nn.ReLU(inplace=True),nn.MaxPool1d(2),nn.Flatten())
 
+#        k1, kernel_size = 3, 9
         self.conv2d = nn.Sequential(nn.Conv2d(in_channels, 60, kernel_size=(k1,kernel_size)),
                            nn.ReLU(inplace=True),\
                            nn.Conv2d(60, 80, kernel_size=(k1,kernel_size)),
                            nn.ReLU(inplace=True), nn.MaxPool2d(2),\
                            nn.Conv2d(80, 80, kernel_size=(k1,kernel_size)),
                            nn.ReLU(inplace=True),
-                           nn.Dropout(0.2), nn.MaxPool2d(2),
+                           nn.MaxPool2d(2),
                            nn.Conv2d(80, 80, kernel_size=(k1,kernel_size)),
                            nn.BatchNorm2d(80),
                            nn.ReLU(inplace=True),
-                           nn.Dropout(0.2),nn.MaxPool2d(2),nn.Flatten())
+                           nn.MaxPool2d(2),
+                           nn.Conv2d(80, 80, kernel_size=(k1,kernel_size)),
+                           nn.BatchNorm2d(80),
+                           nn.ReLU(inplace=True),
+                           nn.MaxPool2d(2),
+                           nn.Flatten())
 
-        self.fc1 = nn.Linear(103808, config.n_classes)
+        self.fc1 = nn.Linear(5952, config.n_classes)
         self.sigmoid = nn.LogSoftmax(dim=1)
 #        self.relu    = nn.ReLU()
 
@@ -46,6 +53,7 @@ class Combined(nn.Module):
         out, (hn, cn) = self.lstm(x.permute(0,2,1), (h_0, c_0)) #lstm with input, hidden, and internal state
         out_lstm      = self.lstm_conv(out.permute(0,2,1)) #lstm with input, hidden, and internal state
 
+#        print(out_lstm.shape, out_conv.shape)
         out = torch.cat((out_lstm,out_conv), 1)
 #        print(out.shape)
  #       input('enter')

@@ -105,8 +105,8 @@ def test_majority_voting(model, dataloader, config, name_str):
 def get_outputs(net, inputs, config):
     if config.apply_gauss:
        inputs = GaussianFourierFeatureTransform(inputs.reshape(-1,1,config.window_len,config.n_channels),config)
-    if config.model_type == 'eegnet' or config.model_type == 'shalloweeg':
-       inputs = inputs.permute(0,2,1)
+#    if config.model_type == 'eegnet' or config.model_type == 'shalloweeg':
+ #      inputs = inputs.permute(0,2,1)
     if config.model_type == 'capsnet':
        outputs, reconstructions, masked = net(inputs)
        outputs = outputs.reshape(-1,config.n_classes)
@@ -139,6 +139,11 @@ def scale(X):
     return X_scaled
 
 def preprocess_signal(config, X):
+    if config.downsample:
+       XD = []
+       for i in range(X.shape[1]):
+           XD.append(signal.decimate(X[:,i], q=4))
+       X = np.array(XD).T
     if config.preprocess_normalize:
        mean, std  = np.mean(X, axis=0), np.std(X, axis=0)
        X = Normalize(mean, std, X)
@@ -169,7 +174,7 @@ def model_loader(config, kernel_size):
     elif config.model_type == 'cnn1d':
        return Conv1D(config, kernel_size)
     elif config.model_type == 'eegnet':
-       return EEGNetv4(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len)
+       return EEGNetv4(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
     elif config.model_type == 'shalloweeg':
        return ShallowFBCSPNet(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
     elif config.model_type == 'combined':

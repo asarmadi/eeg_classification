@@ -5,6 +5,7 @@ from utils.config import Config
 from numpy import array
 import pandas as pd
 import numpy as np
+from sklearn import metrics
 
 config = Config()
 #config.all_subjects = np.array([1,2,3,4,6,7])
@@ -49,30 +50,43 @@ if config.apply_valid_set:
 print(f"Test Acc Major: {test_acc_major}")
 '''
 
-
 filePath = './csv_out/'
 
 acc     = {}
+precis  = {}
+recalls = {}
+f1scores= {}
 correct = 0
 total   = 0
 plt.figure(1)
+header_string = "subject,acc,precision,recall,f1score"
+data_r = np.empty((0,len(header_string.split(','))))
 
 for i, dataset in enumerate(datasets):
     correct = 0
     total   = 0
     for train_idx in config.all_subjects:
         results = pd.read_csv(filePath+dataset+"_"+str(train_idx)+".0.csv", encoding='utf-8')
+        precision, recall, f1score, support = metrics.precision_recall_fscore_support(results['label'], results['prediction'], average='binary')
+        print(precision, recall, f1score, support)
+
         correct_pred = results[results['label'] == results['prediction']]
         correct = len(correct_pred)
         total   = len(results['label'])
-        acc[train_idx] = correct/total*100.
+        acc[train_idx]      = correct/total*100.
+        precis[train_idx]   = precision
+        recalls[train_idx]  = recall
+        f1scores[train_idx] = f1score
+        data_r = np.append(data_r, np.array([[train_idx, acc[train_idx], precision, recall, f1score]]), axis = 0)
+
     plt.plot([str(key_val) for key_val in acc.keys()], list(acc.values()), color_codes[i], label=dataset.capitalize())
+
 if config.realVSFake:
    plt.title("First vs Third")
 print(acc.keys())
 print([str(key_val) for key_val in acc.keys()])
 
-
+np.savetxt(filePath+"stats.csv", data_r, delimiter=",", header=header_string, comments='')
 
 print(f"Test Acc: {acc}")
 
@@ -106,6 +120,15 @@ plt.xlabel("Subject in Test set")
 plt.legend()
 plt.tight_layout()
 plt.savefig('./Figs/Accs.png')
+plt.close()
+
+plt.figure(11)
+plt.plot([str(key_val) for key_val in acc.keys()], list(acc.values()), color_codes[i], label='Accuracy')
+plt.plot([str(key_val) for key_val in precis.keys()], list(acc.values()), color_codes[i], label='Precision')
+plt.plot([str(key_val) for key_val in recalls.keys()], list(acc.values()), color_codes[i], label='Recall')
+plt.plot([str(key_val) for key_val in f1scores.keys()], list(acc.values()), color_codes[i], label='F1-Score')
+plt.savefig('./Figs/multi_acc.png')
+plt.close()
 
 import numpy as np
 print(acc)
