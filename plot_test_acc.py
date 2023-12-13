@@ -74,8 +74,8 @@ for i, dataset in enumerate(datasets):
         correct = len(correct_pred)
         total   = len(results['label'])
         acc[train_idx]      = correct/total*100.
-        precis[train_idx]   = precision
-        recalls[train_idx]  = recall
+        precis[train_idx]   = precision*100
+        recalls[train_idx]  = recall*100
         f1scores[train_idx] = f1score
         data_r = np.append(data_r, np.array([[train_idx, acc[train_idx], precision, recall, f1score]]), axis = 0)
 
@@ -124,9 +124,12 @@ plt.close()
 
 plt.figure(11)
 plt.plot([str(key_val) for key_val in acc.keys()], list(acc.values()),          '-g.', label='Accuracy')
-plt.plot([str(key_val) for key_val in precis.keys()], list(precis.values()),   '-r.', label='Precision')
+plt.plot([str(key_val) for key_val in precis.keys()], list(precis.values()),    '-r.', label='Precision')
 plt.plot([str(key_val) for key_val in recalls.keys()], list(recalls.values()),  '-b.', label='Recall')
-plt.plot([str(key_val) for key_val in f1scores.keys()], list(f1scores.values()),'-k.', label='F1-Score')
+#plt.plot([str(key_val) for key_val in f1scores.keys()], list(f1scores.values()),'-k.', label='F1-Score')
+plt.xlabel("Subject in Test set")
+plt.legend()
+plt.tight_layout()
 plt.savefig('./Figs/multi_acc.png')
 plt.close()
 
