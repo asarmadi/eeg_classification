@@ -37,6 +37,10 @@ class Config:
              self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
+          # Stockwell Hyper-parameters
+          self.fmax_samples = 20
+          self.fmin_samples = 0
+
           # STFT Hyper-parameters
           self.stft        = False
           self.fs          = 1000

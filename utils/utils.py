@@ -20,6 +20,7 @@ import numpy as np
 from scipy import signal
 import pandas as pd
 import tqdm
+from stockwell import st
 from utils.gaussianTrans import GaussianFourierFeatureTransform
 
 
@@ -127,6 +128,13 @@ def spectrogram_per_channel(g, config):
     for j in range(config.n_channels):
         f, t, Sxx = signal.stft(g[:, j], fs=config.fs, nperseg=config.nperseg, noverlap=config.noverlap)
         channels.append(np.abs(Sxx[:config.freq_cut,:]))
+    return np.array(channels)
+
+def stockwell(g, config):
+    channels = []
+    for j in range(config.n_channels):
+        stock = st.st(g[:, j], config.fmin_samples, config.fmax_samples)
+        channels.append(np.abs(stock))
     return np.array(channels)
 
 def Normalize(ave, std, x):
