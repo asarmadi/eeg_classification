@@ -5,11 +5,11 @@ class Config:
           self.model_type   = model
           self.n_subjects   = 20
           self.n_conditions = 4   # FF, EF, FT, ET
-          self.n_channels   = 56
+          self.n_channels   = 1  #56
           self.n_trial      = 36  # For Imaginary it should be 22
           self.file_path    = './data/'  # Path to save the h5 files
           self.n_classes    = 2
-          self.preprocess_normalize = True
+          self.preprocess_normalize = False
           self.preprocess_scale = False
           self.device       = 'cuda:0'
           self.apply_valid_set = False
@@ -38,8 +38,9 @@ class Config:
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
           # Stockwell Hyper-parameters
-          self.fmax_samples = 20
-          self.fmin_samples = 0
+          self.fmax     = 100
+          self.fmin     = 0
+          self.sig_time = 2
 
           # STFT Hyper-parameters
           self.stft        = False

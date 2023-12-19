@@ -132,8 +132,10 @@ def spectrogram_per_channel(g, config):
 
 def stockwell(g, config):
     channels = []
+    fmin_samples = int(config.fmin*config.sig_time)
+    fmax_samples = int(config.fmax*config.sig_time)
     for j in range(config.n_channels):
-        stock = st.st(g[:, j], config.fmin_samples, config.fmax_samples)
+        stock = st.st(g[:, j], fmin_samples, fmax_samples)
         channels.append(np.abs(stock))
     return np.array(channels)
 
