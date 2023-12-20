@@ -20,17 +20,18 @@ parser.add_argument('--n_epochs', default=500, type=int, help='Number of epochs'
 parser.add_argument('--num_workers', default=4, type=int, help='Test Batch Size')
 parser.add_argument('--lr', default=0.001,type=float,help='Learning Rate')
 parser.add_argument('--wd', default=0.01,type=float,help='Weight Decay')
-parser.add_argument('--stft', action='store_true', default=False, help='Apply STFT')
+parser.add_argument('--transform', default="", type=str, help='Apply transform (e.g., stft, stockwell)')
 args = parser.parse_args()
 
 best_acc = 0
 config = Config(args.model_type)
 config.device = args.device
-config.stft=args.stft
+config.transform=args.transform
 
-trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.stft, config.apply_valid_set)
+trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.transform, config.apply_valid_set)
 
 net = model_loader(config,args.kernel_size)
+net= nn.DataParallel(net)
 net = net.to(args.device)
 net.eval()
 

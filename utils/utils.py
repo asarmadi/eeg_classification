@@ -192,9 +192,11 @@ def model_loader(config, kernel_size):
     else:
        return False
 
-def data_loader(batch_size, num_workers, stft, valid_check, add_trial=False):
-    if stft:
-       name_str = '2d'
+def data_loader(batch_size, num_workers, transform, valid_check, add_trial=False):
+    if transform == 'stf':
+       name_str = '2dstft'
+    elif transform == 'stockwell':
+       name_str = '2dstfockwell'
     else:
        name_str = '1d'
     trainset = HDF5Dataset('./data/train_'+name_str+'.h5', add_trial=add_trial)

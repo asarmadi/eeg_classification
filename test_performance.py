@@ -10,14 +10,14 @@ parser.add_argument('--model_type', default='cnn',type=str, help='cnn, caspnet')
 parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
 parser.add_argument('--kernel_size', default=32, type=int, help='Model Kernel Size')
 parser.add_argument('--num_workers', default=4, type=int, help='Number of workers')
-parser.add_argument('--stft', action='store_true', default=False, help='Apply STFT')
+parser.add_argument('--transform', default="", type=str, help='Apply transform (e.g., stft, stockwell)')
 parser.add_argument('--maj_vote', action='store_true', default=False, help='Majority Voting')
 args = parser.parse_args()
 
 best_acc = 0
 
 config = Config(args.model_type)
-trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers, args.stft, config.apply_valid_set,args.maj_vote)
+trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers, args.transform, config.apply_valid_set,args.maj_vote)
 config.device=args.device
 config.maj_vote = args.maj_vote
 net = model_loader(config, args.kernel_size)
