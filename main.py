@@ -31,7 +31,7 @@ config.transform=args.transform
 trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.transform, config.apply_valid_set)
 
 net = model_loader(config,args.kernel_size)
-net= nn.DataParallel(net)
+#net= nn.DataParallel(net)
 net = net.to(args.device)
 net.eval()
 

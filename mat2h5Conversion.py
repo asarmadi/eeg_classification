@@ -76,12 +76,13 @@ def generate_data(data_type):
         data_shape = (n_samples, config.n_channels, fmax_samples+1, config.window_len)
         chunk_shape = (1, config.n_channels, fmax_samples+1, config.window_len)
         print(data_shape)
+        input('enter')
         path_name_str = '2dstfockwell'
     else:
         data_shape = (n_samples, config.n_channels, config.window_len)
         chunk_shape = (1, config.n_channels, config.window_len)
         path_name_str = '1d'
-    compression_type = "gzip"
+    compression_type = None
     chunks_type = (10,)
     f_data = h5py.File(config.file_path+data_type+'_'+path_name_str+'.h5', "w")
     f_data.create_dataset("data",      data_shape,    compression=compression_type, chunks=chunk_shape)

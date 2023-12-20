@@ -33,7 +33,7 @@ class Config:
              self.window_inc   = 2
           else:
              self.n_timepoints = 2000
-             self.window_len  = 1700
+             self.window_len  = 201
              self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
