@@ -10,13 +10,15 @@ class Net(nn.Module):
         if config.apply_gauss:
            in_channels = 2*config.mapping_size
         else:
-           in_channels = 1
+           in_channels = config.n_channels
         self.conv_layer1 = nn.Sequential(nn.Conv2d(in_channels, 60, kernel_size=(k1,kernel_size)),
                            nn.ReLU(inplace=True), nn.AvgPool2d(2))
 #        h_shape = config.freq_cut
         w_shape = int(config.fmax*config.sig_time)+1
 
         h_shape = config.window_len
+        print(f'H: {h_shape} W:{w_shape}')
+
 #        w_shape = config.n_channels
         h_shape = ((h_shape-k1)+1)//2
         w_shape = ((w_shape-kernel_size)+1)//2

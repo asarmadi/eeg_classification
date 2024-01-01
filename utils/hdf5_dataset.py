@@ -1,12 +1,17 @@
 import h5py
 import random
 import torch
+import os
+import sys
+sys.path.insert(0, os.path.join(sys.path[0], '..'))
+#from utils.utils import stockwell
 #import os
 
 class HDF5Dataset(torch.utils.data.Dataset):
-    def __init__(self, path, add_trial=False):
+    def __init__(self, path, config, add_trial=False):
         self.file_path       = path
         self.add_trial       = add_trial
+        self.config          = config
 
         with h5py.File(self.file_path, 'r') as file:
             self.dataset_len = len(file["data"])

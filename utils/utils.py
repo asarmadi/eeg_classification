@@ -14,8 +14,8 @@ from models.lstm import LSTMClassifier
 from models.cnn_lstm import LSTMConv
 from models.cnn_1d import Conv1D
 from models.combined import Combined
+from models.ae import AE
 from braindecode.models import ShallowFBCSPNet, EEGNetv4
-from utils.hdf5_dataset import *
 import numpy as np
 from scipy import signal
 import pandas as pd
@@ -113,7 +113,7 @@ def get_outputs(net, inputs, config):
        outputs = outputs.reshape(-1,config.n_classes)
 #       outputs = nn.functional.logsoftmax(outputs,dim=1)
     else:
-       outputs = net(inputs)
+       outputs = net(inputs.float())
     return outputs
 
 def count_num_classes(dataloader, label):
@@ -135,7 +135,7 @@ def stockwell(g, config):
     fmin_samples = int(config.fmin*config.sig_time)
     fmax_samples = int(config.fmax*config.sig_time)
     for j in range(config.n_channels):
-        stock = st.st(g[:, j], fmin_samples, fmax_samples)
+        stock = st.st(g[j, :], fmin_samples, fmax_samples)
         channels.append(np.abs(stock))
     return np.array(channels)
 
@@ -189,20 +189,23 @@ def model_loader(config, kernel_size):
        return ShallowFBCSPNet(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
     elif config.model_type == 'combined':
        return Combined(config,kernel_size)
+    elif config.model_type == 'ae':
+       return AE(config)
     else:
        return False
 
-def data_loader(batch_size, num_workers, transform, valid_check, add_trial=False):
+def data_loader(batch_size, num_workers, transform, valid_check, config, add_trial=False):
+    from utils.hdf5_dataset import HDF5Dataset
     if transform == 'stf':
        name_str = '2dstft'
     elif transform == 'stockwell':
        name_str = '2dstfockwell'
     else:
        name_str = '1d'
-    trainset = HDF5Dataset('./data/train_'+name_str+'.h5', add_trial=add_trial)
+    trainset = HDF5Dataset('./data/train_'+name_str+'.h5', config, add_trial=add_trial)
     if valid_check:
-       validset = HDF5Dataset('./data/valid_'+name_str+'.h5', add_trial=add_trial)
-    testset  = HDF5Dataset('./data/test_'+name_str+'.h5', add_trial=add_trial)
+       validset = HDF5Dataset('./data/valid_'+name_str+'.h5', config, add_trial=add_trial)
+    testset  = HDF5Dataset('./data/test_'+name_str+'.h5', config, add_trial=add_trial)
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=True)
     testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)

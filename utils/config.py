@@ -5,7 +5,7 @@ class Config:
           self.model_type   = model
           self.n_subjects   = 20
           self.n_conditions = 4   # FF, EF, FT, ET
-          self.n_channels   = 1  #56
+          self.n_channels   = 56  #56
           self.n_trial      = 36  # For Imaginary it should be 22
           self.file_path    = './data/'  # Path to save the h5 files
           self.n_classes    = 2
@@ -16,6 +16,7 @@ class Config:
           self.realVSFake   = True
           self.data_path    = 'Img'    # Img vs Obs
           self.downsample   = False
+          self.transform    = ""    # Specifies the transformation to be applied to the input (e.g., stockwell, stft)
 
 
           # Majority Voting Properties
@@ -33,7 +34,7 @@ class Config:
              self.window_inc   = 2
           else:
              self.n_timepoints = 2000
-             self.window_len  = 201
+             self.window_len  = 1700
              self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 

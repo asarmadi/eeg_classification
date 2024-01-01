@@ -76,7 +76,6 @@ def generate_data(data_type):
         data_shape = (n_samples, config.n_channels, fmax_samples+1, config.window_len)
         chunk_shape = (1, config.n_channels, fmax_samples+1, config.window_len)
         print(data_shape)
-        input('enter')
         path_name_str = '2dstfockwell'
     else:
         data_shape = (n_samples, config.n_channels, config.window_len)
@@ -85,11 +84,11 @@ def generate_data(data_type):
     compression_type = None
     chunks_type = (10,)
     f_data = h5py.File(config.file_path+data_type+'_'+path_name_str+'.h5', "w")
-    f_data.create_dataset("data",      data_shape,    compression=compression_type, chunks=chunk_shape)
-    f_data.create_dataset("label",     (n_samples,),  compression=compression_type, chunks=chunks_type)
-    f_data.create_dataset("subject",   (n_samples,),  compression=compression_type, chunks=chunks_type)
-    f_data.create_dataset("trial",     (n_samples,),  compression=compression_type, chunks=chunks_type)
-    f_data.create_dataset("condition", (n_samples,),  compression=compression_type, chunks=chunks_type)
+    f_data.create_dataset("data",      data_shape,    compression=compression_type)
+    f_data.create_dataset("label",     (n_samples,),  compression=compression_type)
+    f_data.create_dataset("subject",   (n_samples,),  compression=compression_type)
+    f_data.create_dataset("trial",     (n_samples,),  compression=compression_type)
+    f_data.create_dataset("condition", (n_samples,),  compression=compression_type)
 #    d1, d2, d3, d4, d5 = np.memmap("data.mymemmap",dtype='float32', mode='w+', shape=data_shape), np.memmap("label.memmap",dtype='float32', mode='w+', shape=(n_samples,)), np.memmap("subject.memamp",dtype='float32', mode='w+', shape=(n_samples,)), np.memmap("trial.memmap",dtype='float32', mode='w+', shape=(n_samples,)),np.memmap("asddas.memmap",dtype='float32', mode='w+', shape=(n_samples,))
 
     f = h5py.File(path,'r',libver='latest')
