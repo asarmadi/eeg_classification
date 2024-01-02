@@ -27,17 +27,15 @@ net = net.to(args.device)
 #net = torch.nn.DataParallel(net)
 net.load_state_dict(torch.load('./checkpoint/Net.pth'))
 
-batch = next(iter(testloader))
+inputs, targets, _ = next(iter(testloader))
 
-inputs, target = batch
-
-outputs = net(inputs)
+outputs = net(inputs.to(args.device))
 
 fig = plt.figure(1)
 axs = fig.subplots(2, 1)
-axs[0].plot(inputs[0].cpu().numpy())
+axs[0].plot(inputs[0].cpu().detach().numpy())
 axs[0].set_ylabel("Orig")
-axs[1].plot(outputs[0].cpu().numpy())
+axs[1].plot(outputs[0].cpu().detach().numpy())
 axs[1].set_ylabel("AE")
 plt.savefig('./Figs/AE_orig.png')
 plt.show()
