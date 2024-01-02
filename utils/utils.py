@@ -14,7 +14,6 @@ from models.lstm import LSTMClassifier
 from models.cnn_lstm import LSTMConv
 from models.cnn_1d import Conv1D
 from models.combined import Combined
-from models.ae import AE
 from braindecode.models import ShallowFBCSPNet, EEGNetv4
 import numpy as np
 from scipy import signal
@@ -174,23 +173,34 @@ def onehot_encode(labels, device):
 
 def model_loader(config, kernel_size):
     if config.model_type == 'cnn':
+       from models.cnn_model import Net
        return Net(config, kernel_size)
     elif config.model_type == 'capsnet':
+       from models.capsnet import CapsNet
        return CapsNet(config)
     elif config.model_type == 'lstm':
+       from models.lstm import LSTMClassifier
        return LSTMClassifier(config)
     elif config.model_type == 'cnnlstm':
+       from models.cnn_lstm import LSTMConv
        return LSTMConv(config,kernel_size)
     elif config.model_type == 'cnn1d':
+       from models.cnn_1d import Conv1D
        return Conv1D(config, kernel_size)
     elif config.model_type == 'eegnet':
        return EEGNetv4(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
     elif config.model_type == 'shalloweeg':
        return ShallowFBCSPNet(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
     elif config.model_type == 'combined':
+       from models.combined import Combined
        return Combined(config,kernel_size)
     elif config.model_type == 'ae':
+       from models.ae import AE
        return AE(config)
+    elif config.model_type == 'aelinear':
+       from models.ae_linear import AELinear
+       return AELinear(config)
+
     else:
        return False
 
