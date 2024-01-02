@@ -2,9 +2,14 @@ import torch
 import torch.nn as nn
 
 class Encoder(nn.Module):
-    def __init__(self, h_shape, out_dim, in_dim):
+    def __init__(self, config, out_dim):
         super(Encoder, self).__init__()
         kernel_size   = 21
+        self.device   = config.device
+        self.n_layers = config.layer_dim
+        self.n_hidden = config.hidden_dim
+        in_dim        = config.n_channels
+        h_shape       = config.window_len
         self.cnn1     = nn.Conv1d(in_dim, 2*in_dim, kernel_size=kernel_size)
 #        self.maxpool1 = nn.MaxPool2d(kernel_size=2, stride=2)
         h_shape       = ((h_shape-kernel_size)+1)
@@ -17,16 +22,20 @@ class Encoder(nn.Module):
 #        self.maxpool3 = nn.MaxPool2d(kernel_size=2, stride=2)
         h_shape       = ((h_shape-kernel_size)+1)
 
+        self.gru      = nn.GRU(2*in_dim, self.n_hidden, self.n_layers, batch_first=True)
+
         self.relu     = nn.ReLU()
-        self.linear   = nn.Linear(2*in_dim*h_shape, out_dim)
+        self.linear   = nn.Linear(self.n_hidden*h_shape, out_dim)
         self.flatten  = nn.Flatten()
 
     def forward(self, x):
-        x   = self.relu(self.cnn1(x))
-        x   = self.relu(self.cnn2(x))
-        x   = self.relu(self.cnn3(x))
-        x   = self.flatten(x)
-        x   = self.relu(self.linear(x))
+        x     = self.relu(self.cnn1(x))
+        x     = self.relu(self.cnn2(x))
+        x     = self.relu(self.cnn3(x))
+        h0    = torch.zeros(self.n_layers, x.size(0), self.n_hidden).to(self.device)
+        out,_ = self.gru(x.permute(0,2,1), h0)
+        x     = self.flatten(out)
+        x     = self.relu(self.linear(x))
         return x
 
 class Decoder(nn.Module):
@@ -58,11 +67,11 @@ class Decoder(nn.Module):
         x = self.tanh(x)
         return x
 
-class AE(nn.Module):
+class AEGRU(nn.Module):
     def __init__(self, config):
-        super(AE, self).__init__()
+        super(AEGRU, self).__init__()
         hidden_dim   = 40
-        self.encoder = Encoder(config.window_len, out_dim=hidden_dim, in_dim=config.n_channels)
+        self.encoder = Encoder(config, out_dim=hidden_dim)
         self.decoder = Decoder(in_dim=hidden_dim, out_dim=config.n_channels)
 
     def forward(self, x):

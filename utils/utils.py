@@ -8,12 +8,6 @@ import sys
 sys.path.insert(0, os.path.join(sys.path[0], '..'))
 import time
 import torch
-from models.cnn_model import Net
-from models.capsnet import CapsNet
-from models.lstm import LSTMClassifier
-from models.cnn_lstm import LSTMConv
-from models.cnn_1d import Conv1D
-from models.combined import Combined
 from braindecode.models import ShallowFBCSPNet, EEGNetv4
 import numpy as np
 from scipy import signal
@@ -142,7 +136,7 @@ def Normalize(ave, std, x):
     return ((x-ave)/std)
 
 def scale(X):
-    min_des, max_des = 0, 1
+    min_des, max_des = -1, 1
     X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     X_scaled = X_std * (max_des - min_des) + min_des
     return X_scaled
@@ -188,8 +182,10 @@ def model_loader(config, kernel_size):
        from models.cnn_1d import Conv1D
        return Conv1D(config, kernel_size)
     elif config.model_type == 'eegnet':
+       from braindecode.models import EEGNetv4
        return EEGNetv4(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
     elif config.model_type == 'shalloweeg':
+       from braindecode.models import ShallowFBCSPNet
        return ShallowFBCSPNet(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
     elif config.model_type == 'combined':
        from models.combined import Combined
@@ -200,7 +196,9 @@ def model_loader(config, kernel_size):
     elif config.model_type == 'aelinear':
        from models.ae_linear import AELinear
        return AELinear(config)
-
+    elif config.model_type == 'aelstm':
+       from models.ae_lstm import AEGRU
+       return AEGRU(config)
     else:
        return False
 
