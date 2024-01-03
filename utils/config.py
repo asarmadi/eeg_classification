@@ -9,7 +9,7 @@ class Config:
           self.n_trial      = 36  # For Imaginary it should be 22
           self.file_path    = './data/'  # Path to save the h5 files
           self.n_classes    = 2
-          self.preprocess_normalize = False
+          self.preprocess_normalize = True
           self.preprocess_scale = True
           self.device       = 'cuda:0'
           self.apply_valid_set = False

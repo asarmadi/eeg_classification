@@ -33,7 +33,12 @@ trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, arg
 net = model_loader(config,args.kernel_size)
 #net= nn.DataParallel(net)
 net = net.to(args.device)
+net.load_state_dict(torch.load('./checkpoint/Net_'+config.model_type+'.pth'))
 net.eval()
+
+trans_net = None
+if config.transform != "":
+   trans_net = trans_loader(config)
 
 pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
 print(f'Number of Parameters: {pytorch_total_params}')
@@ -59,7 +64,7 @@ def train():
         inputs, targets = inputs.to(args.device), targets.to(args.device)
 
         optimizer.zero_grad()
-        outputs = get_outputs(net, inputs,config)
+        outputs = get_outputs(net, inputs,config, transformer=trans_net)
         if 'ae' in config.model_type:
            loss = criterion(outputs, inputs)
         else:
@@ -89,7 +94,7 @@ for epoch in range(1,args.n_epochs):
        best_acc = clean_acc
     if (clean_acc >= best_acc):
        print('Saving..')
-       torch.save(net.state_dict(), './checkpoint/Net.pth')
+       torch.save(net.state_dict(), './checkpoint/Net_'+config.model_type+'.pth')
        best_acc = clean_acc
 
 

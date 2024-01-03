@@ -28,7 +28,8 @@ else:
 print(f'Test Subjects:  {config.test_subjects}')
 print(f'Train Subjects: {config.train_subjects}')
 
-path = config.file_path + "SF_"+config.data_path+"_MLdata.mat"
+#path = config.file_path + "SF_"+config.data_path+"_MLdata.mat"
+path = config.file_path + "SF_"+config.data_path+"_data_nopre.mat"
 
 def find_subjects_list(data_type):
     if data_type == 'train':

@@ -27,6 +27,11 @@ begin_time = last_time
 def test(model, dataloader, config, name_str):
     if config.maj_vote:
        return test_majority_voting(model, dataloader, config, name_str)
+    trans_net = None
+    if config.transform != None:
+       trans_net = trans_loader(config)
+       tras_net.eval()
+
     model.eval()
     correct = 0
     total = 0
@@ -35,7 +40,7 @@ def test(model, dataloader, config, name_str):
     with torch.no_grad():
         for batch_idx, (inputs, targets, subjects) in enumerate(dataloader):
             inputs, targets = inputs.to(config.device), targets.to(config.device)
-            outputs = get_outputs(model, inputs, config)
+            outputs = get_outputs(model, inputs, config, transformer=trans_net)
             _, predicted = outputs.max(1)
             #predicted = outputs.round()
             total += targets.size(0)
@@ -55,13 +60,18 @@ def test_majority_voting(model, dataloader, config, name_str):
     model.eval()
     correct = 0
     total = 0
+    trans_net = None
+    if config.transform != None:
+       trans_net = trans_loader(config)
+       trans_net.eval()
+
     results = torch.tensor([]).to(config.device)
     if config.apply_gauss:
        gauss_obj = GaussianFourierFeatureTransform(1, config.mapping_size, 10)
     with torch.no_grad():
         for batch_idx, (inputs, targets, subjects, trials, conditions) in enumerate(dataloader):
             inputs, targets, trials, conditions = inputs.to(config.device), targets.to(config.device), trials.to(config.device), conditions.to(config.device)
-            outputs = get_outputs(model, inputs, config)
+            outputs = get_outputs(model, inputs, config, transformer=trans_net)
             _, predicted = outputs.max(1)
             #predicted = outputs.round()
             total += targets.size(0)
@@ -96,11 +106,13 @@ def test_majority_voting(model, dataloader, config, name_str):
     return 100.*correct/total, subjects
 
 
-def get_outputs(net, inputs, config):
+def get_outputs(net, inputs, config, transformer=None):
     if config.apply_gauss:
        inputs = GaussianFourierFeatureTransform(inputs.reshape(-1,1,config.window_len,config.n_channels),config)
 #    if config.model_type == 'eegnet' or config.model_type == 'shalloweeg':
  #      inputs = inputs.permute(0,2,1)
+    if transformer != None:
+       inputs = transformer.get_feature(inputs)
     if config.model_type == 'capsnet':
        outputs, reconstructions, masked = net(inputs)
        outputs = outputs.reshape(-1,config.n_classes)
@@ -136,7 +148,7 @@ def Normalize(ave, std, x):
     return ((x-ave)/std)
 
 def scale(X):
-    min_des, max_des = -1, 1
+    min_des, max_des = -4, 4
     X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     X_scaled = X_std * (max_des - min_des) + min_des
     return X_scaled
@@ -164,6 +176,21 @@ def onehot_encode(labels, device):
     onehot_tensor = onehot_tensor.scatter(1, labels.view(-1, 1), 1)
     onehot_tensor = onehot_tensor.to(device)
     return onehot_tensor
+
+def trans_loader(config):
+    if config.transform == 'ae':
+       from models.ae import AE
+       net = AE(config)
+    elif config.transform == 'aelinear':
+       from models.ae_linear import AELinear
+       net = AELinear(config)
+    elif config.transform == 'aelstm':
+       from models.ae_lstm import AEGRU
+       net = AEGRU(config)
+    net = net.to(config.device)
+    net.load_state_dict(torch.load('./checkpoint/Net_'+config.transform+'.pth'))
+    return net
+
 
 def model_loader(config, kernel_size):
     if config.model_type == 'cnn':
@@ -199,6 +226,9 @@ def model_loader(config, kernel_size):
     elif config.model_type == 'aelstm':
        from models.ae_lstm import AEGRU
        return AEGRU(config)
+    elif config.model_type == 'mlp':
+       from models.mlp import MLP
+       return MLP(config)
     else:
        return False
 
@@ -216,7 +246,7 @@ def data_loader(batch_size, num_workers, transform, valid_check, config, add_tri
     testset  = HDF5Dataset('./data/test_'+name_str+'.h5', config, add_trial=add_trial)
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=True)
-    testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)
+    testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=False)
     if valid_check:
        validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)
        return trainloader, validloader, testloader

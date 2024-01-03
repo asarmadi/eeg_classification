@@ -78,3 +78,5 @@ class AEGRU(nn.Module):
         z = self.encoder(x)
         return self.decoder(z)
 
+    def get_feature(self, x):
+        return self.encoder(x)

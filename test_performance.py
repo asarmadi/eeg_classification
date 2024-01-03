@@ -21,10 +21,11 @@ trainloader, validloader, testloader = data_loader(args.batch_size, args.num_wor
                                                    config.apply_valid_set,add_trial=args.maj_vote,config=config)
 config.device=args.device
 config.maj_vote = args.maj_vote
+config.transform = args.transform
 net = model_loader(config, args.kernel_size)
 net = net.to(args.device)
 #net = torch.nn.DataParallel(net)
-net.load_state_dict(torch.load('./checkpoint/Net.pth'))
+net.load_state_dict(torch.load('./checkpoint/Net_'+config.model_type+'.pth'))
 
 #net = net.to(args.device)
 
