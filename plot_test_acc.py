@@ -8,7 +8,7 @@ import numpy as np
 from sklearn import metrics
 
 config = Config()
-#config.all_subjects = np.array([1,2,3,4,6,7])
+#config.all_subjects = np.array([1,2,3,4,6,7,8,9,12,13,14,15])
 color_codes = ['-g.', '-b.', '-r.']
 if config.apply_valid_set:
    datasets = ['train','test','valid']
@@ -91,25 +91,41 @@ np.savetxt(filePath+"stats.csv", data_r, delimiter=",", header=header_string, co
 print(f"Test Acc: {acc}")
 
 
-
+macc     = {}
+mprecis  = {}
+mrecalls = {}
 for i, dataset in enumerate(datasets):
-    correct = 0
-    total   = 0
     for sub in config.all_subjects:
         df = pd.read_csv(filePath+dataset+"_"+str(sub)+".0.csv", encoding='utf-8')
         trials = df['trial'].unique()
         labels = df['label'].unique()
         conditions = df['condition'].unique()
         #print(f"Shapes: T:{len(trials)}, L:{len(labels)}, C:{len(conditions)}")
-        correct = 0
         total = 0
+        tp, tn, fp, fn = 0, 0, 0, 0
+        # Assumption: 1(third) is positive, 0(first) is negative
         for tr in trials:
             for condition in conditions:
                 rows = df[(df['subject'] == sub) & (df['trial'] == tr) & (df['condition'] == condition)]
                 correct_pred = rows[rows['label'] == rows['prediction']]
-                if len(correct_pred) >= config.threshold*len(rows['label']):
-                   correct += 1
-                total += 1
+                if len(rows) != 0:
+                   actual    = np.mean(rows['label'])
+                   predicted = max(rows['prediction'],key=rows['prediction'].to_list().count)
+                   if actual == 1:
+                      if predicted == 1:
+                         tp +=1
+                      else:
+                         fn +=1
+                   else:
+                      if predicted == 1:
+                         fp +=1
+                      else:
+                         tn +=1
+                   total += 1
+        correct = tp + tn
+        macc[sub]     = 100.*correct/total
+        mprecis[sub]  = 100.*(tp/(tp+fp))
+        mrecalls[sub] = 100.*(tp/(tp+fn))
         test_acc_major[sub] = 100.*correct/total
 
 plt.plot([str(key_val) for key_val in test_acc_major.keys()],  list(test_acc_major.values()),  '-b.', label='Test (Major Voting)')
@@ -133,10 +149,20 @@ plt.tight_layout()
 plt.savefig('./Figs/multi_acc.png')
 plt.close()
 
+plt.figure(12)
+plt.plot([str(key_val) for key_val in macc.keys()], list(macc.values()),          '-g.', label='Accuracy')
+plt.plot([str(key_val) for key_val in mprecis.keys()], list(mprecis.values()),    '-r.', label='Precision')
+plt.plot([str(key_val) for key_val in mrecalls.keys()], list(mrecalls.values()),  '-b.', label='Recall')
+plt.xlabel("Subject in Test set")
+plt.legend()
+plt.tight_layout()
+plt.savefig('./Figs/multi_acc_major.png')
+plt.close()
+
 import numpy as np
 print(acc)
 print(np.mean(list(acc.values())), np.std(list(acc.values())))
 
-print(test_acc_major)
+print(f"Test Acc Major: {test_acc_major}")
 print(np.mean(list(test_acc_major.values())), np.std(list(test_acc_major.values())))
 

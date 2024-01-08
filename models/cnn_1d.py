@@ -10,8 +10,8 @@ class Conv1D(nn.Module):
         out_shape = (config.window_len-kernel_size+1)
 
         self.conv_layer2 = nn.Sequential(nn.Conv1d(2*config.n_channels, 4*config.n_channels, kernel_size=kernel_size),\
-                                         nn.BatchNorm1d(4*config.n_channels),nn.AvgPool1d(2),nn.ReLU(inplace=True))
-        out_shape = (out_shape-kernel_size+1)//2
+                                         nn.BatchNorm1d(4*config.n_channels),nn.ReLU(inplace=True))
+        out_shape = (out_shape-kernel_size+1)
 
         self.conv_layer3 = nn.Sequential(nn.Conv1d(4*config.n_channels, 8*config.n_channels, kernel_size=kernel_size),\
                                          nn.BatchNorm1d(8*config.n_channels),nn.AvgPool1d(2),nn.ReLU(inplace=True))

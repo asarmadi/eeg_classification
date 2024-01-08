@@ -28,7 +28,7 @@ def test(model, dataloader, config, name_str):
     if config.maj_vote:
        return test_majority_voting(model, dataloader, config, name_str)
     trans_net = None
-    if config.transform != None:
+    if config.transform != "nothing":
        trans_net = trans_loader(config)
        tras_net.eval()
 
@@ -61,7 +61,7 @@ def test_majority_voting(model, dataloader, config, name_str):
     correct = 0
     total = 0
     trans_net = None
-    if config.transform != None:
+    if config.transform != "nothing":
        trans_net = trans_loader(config)
        trans_net.eval()
 
@@ -148,7 +148,7 @@ def Normalize(ave, std, x):
     return ((x-ave)/std)
 
 def scale(X):
-    min_des, max_des = -4, 4
+    min_des, max_des = -1, 1
     X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     X_scaled = X_std * (max_des - min_des) + min_des
     return X_scaled

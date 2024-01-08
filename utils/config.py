@@ -9,8 +9,8 @@ class Config:
           self.n_trial      = 36  # For Imaginary it should be 22
           self.file_path    = './data/'  # Path to save the h5 files
           self.n_classes    = 2
-          self.preprocess_normalize = True
-          self.preprocess_scale = True
+          self.preprocess_normalize = False
+          self.preprocess_scale = False
           self.device       = 'cuda:0'
           self.apply_valid_set = False
           self.realVSFake   = True
@@ -20,7 +20,7 @@ class Config:
 
 
           # Majority Voting Properties
-          self.maj_vote    = True
+          self.maj_vote    = False
           self.threshold   = 0.5
 
           # Gaussian Transform
@@ -34,7 +34,7 @@ class Config:
              self.window_inc   = 2
           else:
              self.n_timepoints = 2000
-             self.window_len  = 1700
+             self.window_len  = 1500
              self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 

@@ -10,7 +10,7 @@ parser.add_argument('--model_type', default='cnn',type=str, help='cnn, caspnet')
 parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
 parser.add_argument('--kernel_size', default=32, type=int, help='Model Kernel Size')
 parser.add_argument('--num_workers', default=4, type=int, help='Number of workers')
-parser.add_argument('--transform', default="", type=str, help='Apply transform (e.g., stft, stockwell)')
+parser.add_argument('--transform', default="nothing", type=str, help='Apply transform (e.g., stft, stockwell)')
 parser.add_argument('--maj_vote', action='store_true', default=False, help='Majority Voting')
 args = parser.parse_args()
 

@@ -54,6 +54,7 @@ class Net(nn.Module):
         self.lsf     = nn.LogSoftmax(dim=1)
 
     def forward(self, x):
+        print(x.shape)
         x   = self.conv_layer1(x)
         x   = self.conv_layer2(x)
         x   = self.conv_layer3(x)

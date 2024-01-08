@@ -67,7 +67,7 @@ class Decoder(nn.Module):
         '''
         x   = self.relu(self.bn1(self.fc1(x)))
         x   = self.relu(self.bn2(self.fc2(x)))
-        x   = 4*self.tanh(self.fc3(x))
+        x   = self.tanh(self.fc3(x))
         return x.reshape(-1,self.channels,self.h_shape)
 
 class AELinear(nn.Module):

@@ -20,7 +20,7 @@ parser.add_argument('--n_epochs', default=500, type=int, help='Number of epochs'
 parser.add_argument('--num_workers', default=4, type=int, help='Test Batch Size')
 parser.add_argument('--lr', default=0.001,type=float,help='Learning Rate')
 parser.add_argument('--wd', default=0.01,type=float,help='Weight Decay')
-parser.add_argument('--transform', default="", type=str, help='Apply transform (e.g., stft, stockwell)')
+parser.add_argument('--transform', default="nothing", type=str, help='Apply transform (e.g., stft, stockwell)')
 args = parser.parse_args()
 
 best_acc = 0
@@ -33,16 +33,16 @@ trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, arg
 net = model_loader(config,args.kernel_size)
 #net= nn.DataParallel(net)
 net = net.to(args.device)
-net.load_state_dict(torch.load('./checkpoint/Net_'+config.model_type+'.pth'))
+#net.load_state_dict(torch.load('./checkpoint/Net_'+config.model_type+'.pth'))
 net.eval()
 
 trans_net = None
-if config.transform != "":
+if config.transform != "nothing":
    trans_net = trans_loader(config)
 
 pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
 print(f'Number of Parameters: {pytorch_total_params}')
-optimizer = optim.Adam(net.parameters(), lr=args.lr,  weight_decay=args.wd)
+optimizer = optim.AdamW(net.parameters(), lr=args.lr,  weight_decay=args.wd)
 
 cudnn.benchmark = True
 
@@ -89,7 +89,7 @@ for epoch in range(1,args.n_epochs):
     clean_acc = train()
 
     if config.apply_valid_set:
-       clean_acc,_ = test(net, validloader, config)
+       clean_acc,_ = test(net, validloader, config, "valid")
     if epoch == 1:
        best_acc = clean_acc
     if (clean_acc >= best_acc):
