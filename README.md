@@ -35,6 +35,10 @@ The data is stored in *.mat files under "data" folder. To convert this data into
 python mat2h5Conversion.py
 ```
 
+There is another script for the case when the trials from the test subject is included in the training set. In other words, the training has all the users, but the test set has only 1 subject. The difference between these two sets is the set of trials which have no intersection. Run the following
+```
+python mat2h5ConversionFull.py
+```
 
 ## Credits
 We thank authors of the following repos for their contributions to our codebase:
