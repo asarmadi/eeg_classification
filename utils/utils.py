@@ -134,14 +134,18 @@ def spectrogram_per_channel(g, config):
         channels.append(np.abs(Sxx[:config.freq_cut,:]))
     return np.array(channels)
 
-def stockwell(g, config):
+def stockwell(g, config, single_channel=False):
     channels = []
     fmin_samples = int(config.fmin*config.sig_time)
     fmax_samples = int(config.fmax*config.sig_time)
-    for j in range(config.n_channels):
-        stock = st.st(g[j, :], fmin_samples, fmax_samples)
-        channels.append(np.abs(stock))
-    return np.array(channels)
+    if not single_channel:
+       for j in range(config.n_channels):
+           stock = st.st(g[j, :], fmin_samples, fmax_samples)
+           channels.append(np.abs(stock))
+       return np.array(channels)
+    else:
+        stock = st.st(g, fmin_samples, fmax_samples)
+        return np.abs(stock)
 
 def Normalize(ave, std, x):
     return ((x-ave)/std)
