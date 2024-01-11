@@ -148,8 +148,10 @@ def Normalize(ave, std, x):
     return ((x-ave)/std)
 
 def scale(X):
-    min_des, max_des = -1, 1
-    X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
+    min_des, max_des   = -1, 1
+    min_curr, max_curr = -332718.2, 29996.145
+    #X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
+    X_std = (X - min_curr) / (max_curr - min_curr)
     X_scaled = X_std * (max_des - min_des) + min_des
     return X_scaled
 
