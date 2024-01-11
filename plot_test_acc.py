@@ -8,7 +8,7 @@ import numpy as np
 from sklearn import metrics
 
 config = Config()
-#config.all_subjects = np.array([1,2,3,4,6,7,8,9,12,13,14,15])
+#config.all_subjects = np.array([1,2,3,4,6])
 color_codes = ['-g.', '-b.', '-r.']
 if config.apply_valid_set:
    datasets = ['train','test','valid']
