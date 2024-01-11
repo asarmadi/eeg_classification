@@ -8,7 +8,6 @@ import sys
 sys.path.insert(0, os.path.join(sys.path[0], '..'))
 import time
 import torch
-from braindecode.models import ShallowFBCSPNet, EEGNetv4
 import numpy as np
 from scipy import signal
 import pandas as pd
