@@ -44,3 +44,5 @@ python mat2h5ConversionFull.py
 We thank authors of the following repos for their contributions to our codebase:
 
 * The CapsuleNet implementation is derived from [Pytorch-CapsuleNet](https://github.com/jindongwang/Pytorch-CapsuleNet.git).
+
+* Stockwell implementation is derived from [Stockwell](https://github.com/claudiodsf/stockwell.git)
