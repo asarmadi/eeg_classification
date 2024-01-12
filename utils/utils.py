@@ -139,8 +139,8 @@ def stockwell(g, config, single_channel=False):
     fmin_samples = int(config.fmin*config.sig_time)
     fmax_samples = int(config.fmax*config.sig_time)
     if not single_channel:
-       for j in range(config.n_channels):
-           stock = st.st(g[j, :], fmin_samples, fmax_samples)
+       for j in config.channels_list:
+           stock = st.st(g[:, j], fmin_samples, fmax_samples, gamma=0.1, win_type='kazemi')
            channels.append(np.abs(stock))
        return np.array(channels)
     else:
@@ -192,6 +192,8 @@ def trans_loader(config):
     elif config.transform == 'aelstm':
        from models.ae_lstm import AEGRU
        net = AEGRU(config)
+    else:
+       return None
     net = net.to(config.device)
     net.load_state_dict(torch.load('./checkpoint/Net_'+config.transform+'.pth'))
     return net

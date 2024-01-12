@@ -10,13 +10,16 @@ class Config:
           self.file_path    = './data/'  # Path to save the h5 files
           self.n_classes    = 2
           self.preprocess_normalize = False
-          self.preprocess_scale = False
+          self.preprocess_scale = True
           self.device       = 'cuda:0'
           self.apply_valid_set = False
           self.realVSFake   = True
           self.data_path    = 'Img'    # Img vs Obs
           self.downsample   = False
           self.transform    = ""    # Specifies the transformation to be applied to the input (e.g., stockwell, stft)
+
+          # Stockwell
+          self.channels_list = [1, 29, 38]
 
 
           # Majority Voting Properties

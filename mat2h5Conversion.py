@@ -74,7 +74,7 @@ def generate_data(data_type):
         path_name_str = '2dstft'
     elif args.apply_transform == 'stockwell':
         fmax_samples = int(config.fmax*config.sig_time)
-        data_shape = (n_samples, config.n_channels, fmax_samples+1, config.window_len)
+        data_shape = (n_samples, len(config.channels_list), fmax_samples+1, config.window_len)
         chunk_shape = (1, config.n_channels, fmax_samples+1, config.window_len)
         print(data_shape)
         path_name_str = '2dstfockwell'

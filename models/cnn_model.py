@@ -9,12 +9,15 @@ class Net(nn.Module):
         k1 = kernel_size
         if config.apply_gauss:
            in_channels = 2*config.mapping_size
+        elif config.transform == 'stockwell':
+           in_channels = len(config.channels_list)
         else:
-           in_channels = config.n_channels
+           in_channels = 1
         self.conv_layer1 = nn.Sequential(nn.Conv2d(in_channels, 60, kernel_size=(k1,kernel_size)),
                            nn.ReLU(inplace=True), nn.AvgPool2d(2))
 #        h_shape = config.freq_cut
         w_shape = int(config.fmax*config.sig_time)+1
+#        w_shape = config.n_channels
 
         h_shape = config.window_len
         print(f'H: {h_shape} W:{w_shape}')
@@ -54,7 +57,6 @@ class Net(nn.Module):
         self.lsf     = nn.LogSoftmax(dim=1)
 
     def forward(self, x):
-        print(x.shape)
         x   = self.conv_layer1(x)
         x   = self.conv_layer2(x)
         x   = self.conv_layer3(x)
