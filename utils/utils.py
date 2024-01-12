@@ -144,7 +144,7 @@ def stockwell(g, config, single_channel=False):
            channels.append(np.abs(stock))
        return np.array(channels)
     else:
-        stock = st.st(g, fmin_samples, fmax_samples)
+        stock = st.st(g, fmin_samples, fmax_samples, gamma=0.1, win_type='kazemi')
         return np.abs(stock)
 
 def Normalize(ave, std, x):
