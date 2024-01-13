@@ -62,7 +62,6 @@ def test_majority_voting(model, dataloader, config, name_str):
     trans_net = None
     if config.transform != "nothing":
        trans_net = trans_loader(config)
-       trans_net.eval()
 
     results = torch.tensor([]).to(config.device)
     if config.apply_gauss:
@@ -196,6 +195,7 @@ def trans_loader(config):
        return None
     net = net.to(config.device)
     net.load_state_dict(torch.load('./checkpoint/Net_'+config.transform+'.pth'))
+    net.eval()
     return net
 
 

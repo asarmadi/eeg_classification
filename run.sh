@@ -1,6 +1,6 @@
-LR=0.0001
+LR=0.001
 WD=0.00
-BATCH_SIZE=8
+BATCH_SIZE=32
 KERNEL_SIZE=3
 NEPOCHS=201
 MODEL_TYPE=mlp
@@ -18,7 +18,7 @@ fi
 TEST_TARGET=12
 TRANSFORM=stockwell
 #python -W ignore mat2h5ConversionFull.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
-#python -W ignore mat2h5Conversion.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
+python -W ignore mat2h5Conversion.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
 
 
 ##### Training AE ######
