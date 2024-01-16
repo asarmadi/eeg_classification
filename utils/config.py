@@ -7,7 +7,7 @@ class Config:
           self.n_conditions = 4   # FF, EF, FT, ET
           self.n_channels   = 56  #56
           self.n_trial      = 36  # For Imaginary it should be 22
-          self.file_path    = './data/'  # Path to save the h5 files
+          self.file_path    = './data/separate/'  # Path to save the h5 files
           self.n_classes    = 2
           self.preprocess_normalize = False
           self.preprocess_scale = True
@@ -19,7 +19,8 @@ class Config:
           self.transform    = ""    # Specifies the transformation to be applied to the input (e.g., stockwell, stft)
 
           # Stockwell
-          self.channels_list = [1, 29, 38]
+          #self.channels_list = [1, 29, 38]
+          self.channels_list = [i for i in range(0,self.n_channels)]
 
 
           # Majority Voting Properties
@@ -37,7 +38,7 @@ class Config:
              self.window_inc   = 2
           else:
              self.n_timepoints = 2000
-             self.window_len  = 1500
+             self.window_len  = 1900
              self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 

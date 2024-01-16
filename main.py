@@ -28,6 +28,9 @@ config = Config(args.model_type)
 config.device = args.device
 config.transform=args.transform
 
+if not os.path.isdir('./checkpoint/'):
+   os.makedirs('./checkpoint/')
+
 trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.transform, config.apply_valid_set,config=config)
 
 net = model_loader(config,args.kernel_size)

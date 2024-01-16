@@ -23,12 +23,12 @@ if config.apply_valid_set:
    print(f'Valid Subjects: {config.valid_subjects}')
    data_sets = ['train', 'test', 'valid']
 else:
-   data_sets = ['train', 'test']
+   data_sets = ['test']
 
 print(f'Test Subjects:  {config.test_subjects}')
 print(f'Train Subjects: {config.train_subjects}')
 
-path = config.file_path + "SF_"+config.data_path+"_MLdata.mat"
+path = "./data/SF_"+config.data_path+"_MLdata.mat"
 #path = config.file_path + "SF_"+config.data_path+"_data_nopre.mat"
 
 def find_subjects_list(data_type):
@@ -39,13 +39,6 @@ def find_subjects_list(data_type):
     elif data_type == 'valid':
         subjects_list = config.valid_subjects
     return subjects_list
-
-def find_num_samples(num_trials, sub_list):
-    n_samples = 0
-    for sub in sub_list:
-        for cond in config.conditions:
-            n_samples += config.n_windows*num_trials[sub][cond]
-    return n_samples
 
 def find_num_trials(data_type):
     data_dict = {}
@@ -66,30 +59,17 @@ def generate_data(data_type):
     subjects_list = find_subjects_list(data_type)
     trials_list   = find_num_trials(data_type)
 
-    n_samples = find_num_samples(trials_list,subjects_list)
-    print(n_samples)
     if args.apply_transform == 'stft':
-        data_shape = (n_samples, config.n_channels, config.freq_cut, config.nTimeBins)
-        chunk_shape = (1, config.n_channels, config.freq_cut, config.nTimeBins)
+        data_shape    = (1, config.n_channels, config.freq_cut, config.nTimeBins)
         path_name_str = '2dstft'
     elif args.apply_transform == 'stockwell':
         fmax_samples = int(config.fmax*config.sig_time)
-        data_shape = (n_samples, len(config.channels_list), fmax_samples+1, config.window_len)
-        chunk_shape = (1, config.n_channels, fmax_samples+1, config.window_len)
+        data_shape   = (1, len(config.channels_list), fmax_samples+1, config.window_len)
         print(data_shape)
         path_name_str = '2dstfockwell'
     else:
-        data_shape = (n_samples, config.n_channels, config.window_len)
-        chunk_shape = (1, config.n_channels, config.window_len)
+        data_shape    = (1, config.n_channels, config.window_len)
         path_name_str = '1d'
-    compression_type = "gzip"
-    chunks_type = (10,)
-    f_data = h5py.File(config.file_path+data_type+'_'+path_name_str+'.h5', "w")
-    f_data.create_dataset("data",      data_shape,    compression=compression_type)
-    f_data.create_dataset("label",     (n_samples,),  compression=compression_type)
-    f_data.create_dataset("subject",   (n_samples,),  compression=compression_type)
-    f_data.create_dataset("trial",     (n_samples,),  compression=compression_type)
-    f_data.create_dataset("condition", (n_samples,),  compression=compression_type)
 
     f = h5py.File(path,'r',libver='latest')
 
@@ -105,26 +85,31 @@ def generate_data(data_type):
                 eeg_scaled = eeg[i_trial,:,:]
                 eeg_scaled = preprocess_signal(config,eeg_scaled)
                 for j_windows in range(config.n_windows):
+                    f_data = h5py.File(config.file_path+data_type+'_'+path_name_str+'_'+str(u)+'.h5', "w")
+                    f_data.create_dataset("data",      data_shape, compression='gzip')
+                    f_data.create_dataset("label",     (1,), compression='gzip')
+                    f_data.create_dataset("subject",   (1,), compression='gzip')
+                    f_data.create_dataset("trial",     (1,), compression='gzip')
+                    f_data.create_dataset("condition", (1,), compression='gzip')
                     eeg_norm = eeg_scaled[j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
                     if args.apply_transform == 'stft':
-                        f_data["data"][u,...] = spectrogram_per_channel(eeg_norm, config)
+                        f_data["data"][0,...]    = spectrogram_per_channel(eeg_norm, config)
                     elif args.apply_transform == 'stockwell':
-                        f_data["data"][u,...] = stockwell(eeg_norm, config)
+                        f_data["data"][0,...]    = stockwell(eeg_norm, config)
                     else:
-                        f_data["data"][u,...] = eeg_norm.T
+                        f_data["data"][0,...]    = eeg_norm.T
                     if config.realVSFake:
                        if condition == 0 or condition == 1:
-                          f_data["label"][u]    = 0
+                          f_data["label"][0] = 0
                        else:
-                          f_data["label"][u]    = 1
+                          f_data["label"][0] = 1
                     else:
-                       f_data["label"][u]    = condition - 2
-                    f_data["trial"][u]    = i_trial
-                    f_data["condition"][u]    = condition
-                    f_data["subject"][u]  = subject
+                       f_data["label"][0]    = condition - 2
+                    f_data["trial"][0]       = i_trial
+                    f_data["condition"][0]   = condition
+                    f_data["subject"][0]     = subject
+                    f_data.close()
                     u += 1
-
-    f_data.close()
 
 for dataSet in data_sets:
     generate_data(dataSet)
