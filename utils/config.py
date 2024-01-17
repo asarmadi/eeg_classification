@@ -38,8 +38,8 @@ class Config:
              self.window_inc   = 2
           else:
              self.n_timepoints = 2000
-             self.window_len  = 1900
-             self.window_inc  = 10
+             self.window_len  = 1500
+             self.window_inc  = 50
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
           # Stockwell Hyper-parameters
