@@ -23,7 +23,7 @@ if config.apply_valid_set:
    print(f'Valid Subjects: {config.valid_subjects}')
    data_sets = ['train', 'test', 'valid']
 else:
-   data_sets = ['test']
+   data_sets = ['train', 'test']
 
 print(f'Test Subjects:  {config.test_subjects}')
 print(f'Train Subjects: {config.train_subjects}')
@@ -42,15 +42,15 @@ def find_subjects_list(data_type):
 
 def find_num_trials(data_type):
     data_dict = {}
-    f = h5py.File(path,'r')
-    subjects_list = find_subjects_list(data_type)
-    for subject in subjects_list:
-        trials_shape = {}
-        for condition in config.conditions:
-            ref = f["data"][condition][subject]
-            eeg = np.array(f[ref])
-            trials_shape[condition]=eeg.shape[0]
-        data_dict[subject]=trials_shape
+    with h5py.File(path, "r") as f:
+        subjects_list = find_subjects_list(data_type)
+        for subject in subjects_list:
+            trials_shape = {}
+            for condition in config.conditions:
+                ref = f["data"][condition][subject]
+                eeg = np.array(f[ref])
+                trials_shape[condition]=eeg.shape[0]
+            data_dict[subject]=trials_shape
     return data_dict
 
 
@@ -71,45 +71,43 @@ def generate_data(data_type):
         data_shape    = (1, config.n_channels, config.window_len)
         path_name_str = '1d'
 
-    f = h5py.File(path,'r',libver='latest')
-
-    for subject in subjects_list:
-        for condition in config.conditions:
-            ref = f["data"][condition][subject]
-            eeg = np.array(f[ref])
-            print(f'{data_type} subject#: {subject}, condition: {condition}')
-            ref = f["data"][condition][subject]
-            eeg = np.array(f[ref])
-            sub_trials  = trials_list[subject][condition]
-            for i_trial in range(sub_trials):
-                eeg_scaled = eeg[i_trial,:,:]
-                eeg_scaled = preprocess_signal(config,eeg_scaled)
-                for j_windows in range(config.n_windows):
-                    f_data = h5py.File(config.file_path+data_type+'_'+path_name_str+'_'+str(u)+'.h5', "w")
-                    f_data.create_dataset("data",      data_shape, compression='gzip')
-                    f_data.create_dataset("label",     (1,), compression='gzip')
-                    f_data.create_dataset("subject",   (1,), compression='gzip')
-                    f_data.create_dataset("trial",     (1,), compression='gzip')
-                    f_data.create_dataset("condition", (1,), compression='gzip')
-                    eeg_norm = eeg_scaled[j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
-                    if args.apply_transform == 'stft':
-                        f_data["data"][0,...]    = spectrogram_per_channel(eeg_norm, config)
-                    elif args.apply_transform == 'stockwell':
-                        f_data["data"][0,...]    = stockwell(eeg_norm, config)
-                    else:
-                        f_data["data"][0,...]    = eeg_norm.T
-                    if config.realVSFake:
-                       if condition == 0 or condition == 1:
-                          f_data["label"][0] = 0
-                       else:
-                          f_data["label"][0] = 1
-                    else:
-                       f_data["label"][0]    = condition - 2
-                    f_data["trial"][0]       = i_trial
-                    f_data["condition"][0]   = condition
-                    f_data["subject"][0]     = subject
-                    f_data.close()
-                    u += 1
+    with h5py.File(path, "r",libver='latest') as f:
+        for subject in subjects_list:
+            for condition in config.conditions:
+                ref = f["data"][condition][subject]
+                eeg = np.array(f[ref])
+                print(f'{data_type} subject#: {subject}, condition: {condition}')
+                sub_trials  = trials_list[subject][condition]
+                for i_trial in range(sub_trials):
+                    eeg_scaled = eeg[i_trial,:,:]
+                    eeg_scaled = preprocess_signal(config,eeg_scaled)
+                    for j_windows in range(config.n_windows):
+                        f_data = h5py.File(config.file_path+data_type+'_'+path_name_str+'_'+str(u)+'.h5', "w")
+                        f_data.create_dataset("data",      data_shape, compression='gzip')
+                        f_data.create_dataset("label",     (1,), compression='gzip')
+                        f_data.create_dataset("subject",   (1,), compression='gzip')
+                        f_data.create_dataset("trial",     (1,), compression='gzip')
+                        f_data.create_dataset("condition", (1,), compression='gzip')
+                        eeg_norm = eeg_scaled[j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
+                        if args.apply_transform == 'stft':
+                            f_data["data"][0,...]    = spectrogram_per_channel(eeg_norm, config)
+                        elif args.apply_transform == 'stockwell':
+                            f_data["data"][0,...]    = stockwell(eeg_norm, config)
+                        else:
+                            f_data["data"][0,...]    = eeg_norm.T
+                        if config.realVSFake:
+                           if condition == 0 or condition == 1:
+                              f_data["label"][0] = 0
+                           else:
+                              f_data["label"][0] = 1
+                        else:
+                           f_data["label"][0]    = condition - 2
+                        f_data["trial"][0]       = i_trial
+                        f_data["condition"][0]   = condition
+                        f_data["subject"][0]     = subject
+                        f_data.close()
+                        del f_data
+                        u += 1
 
 for dataSet in data_sets:
     generate_data(dataSet)
