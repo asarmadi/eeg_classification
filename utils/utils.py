@@ -240,17 +240,17 @@ def model_loader(config, kernel_size):
        return False
 
 def data_loader(batch_size, num_workers, transform, valid_check, config, add_trial=False):
-    from utils.hdf5_dataset import HDF5Dataset
+    from utils.hdf5_dataset_ind import HDF5Dataset
     if transform == 'stf':
        name_str = '2dstft'
     elif transform == 'stockwell':
        name_str = '2dstfockwell'
     else:
        name_str = '1d'
-    trainset = HDF5Dataset('./data/train_'+name_str+'.h5', config, add_trial=add_trial)
+    trainset = HDF5Dataset('train', config, add_trial=add_trial)
     if valid_check:
-       validset = HDF5Dataset('./data/valid_'+name_str+'.h5', config, add_trial=add_trial)
-    testset  = HDF5Dataset('./data/test_'+name_str+'.h5', config, add_trial=add_trial)
+       validset = HDF5Dataset('valid', config, add_trial=add_trial)
+    testset  = HDF5Dataset('test', config, add_trial=add_trial)
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=True)
     testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=False)

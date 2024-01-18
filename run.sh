@@ -1,6 +1,6 @@
 LR=0.001
 WD=0.00
-BATCH_SIZE=32
+BATCH_SIZE=8
 KERNEL_SIZE=3
 NEPOCHS=201
 MODEL_TYPE=mlp
@@ -19,14 +19,14 @@ TEST_TARGET=12
 TRANSFORM=stockwell
 #python -W ignore mat2h5ConversionFull.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
 #python -W ignore mat2h5Conversion.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
-python -W ignore mat2h5ConversionSeparateFiles.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
+#python -W ignore mat2h5ConversionSeparateFiles.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
 
 
 ##### Training AE ######
 NEPOCHS=41
 MODEL_TYPE=cnn
-#TRANSFORM=nothing
-#python -W ignore main.py --lr ${LR} --batch_size ${BATCH_SIZE} --wd ${WD} --model_type ${MODEL_TYPE} --n_epochs ${NEPOCHS} --kernel_size ${KERNEL_SIZE} --transform ${TRANSFORM}
+TRANSFORM=stockwell
+python -W ignore main.py --lr ${LR} --batch_size ${BATCH_SIZE} --wd ${WD} --model_type ${MODEL_TYPE} --n_epochs ${NEPOCHS} --kernel_size ${KERNEL_SIZE} --transform ${TRANSFORM}
 
 #### Trainin MLP using AE
 #NEPOCHS=201

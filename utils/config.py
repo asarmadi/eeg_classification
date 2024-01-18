@@ -19,8 +19,8 @@ class Config:
           self.transform    = ""    # Specifies the transformation to be applied to the input (e.g., stockwell, stft)
 
           # Stockwell
-          #self.channels_list = [1, 29, 38]
-          self.channels_list = [i for i in range(0,self.n_channels)]
+          self.channels_list = [15,17,18, 20,43,44,46,48,49]
+#          self.channels_list = [i for i in range(0,self.n_channels)]
 
 
           # Majority Voting Properties

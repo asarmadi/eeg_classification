@@ -17,7 +17,7 @@ parser.add_argument('--model_type', default='cnn',type=str, help='cnn, caspnet, 
 parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
 parser.add_argument('--kernel_size', default=32, type=int, help='Model Kernel Size')
 parser.add_argument('--n_epochs', default=500, type=int, help='Number of epochs')
-parser.add_argument('--num_workers', default=4, type=int, help='Test Batch Size')
+parser.add_argument('--num_workers', default=8, type=int, help='Test Batch Size')
 parser.add_argument('--lr', default=0.001,type=float,help='Learning Rate')
 parser.add_argument('--wd', default=0.01,type=float,help='Weight Decay')
 parser.add_argument('--transform', default="nothing", type=str, help='Apply transform (e.g., stft, stockwell)')
@@ -65,7 +65,6 @@ def train():
     total = 0
     for batch_idx, (inputs, targets, _) in enumerate(trainloader):
         inputs, targets = inputs.to(args.device), targets.to(args.device)
-
         optimizer.zero_grad()
         outputs = get_outputs(net, inputs,config, transformer=trans_net)
         if 'ae' in config.model_type:
