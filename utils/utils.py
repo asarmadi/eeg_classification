@@ -247,7 +247,15 @@ def data_loader(batch_size, num_workers, transform, valid_check, config, add_tri
        name_str = '2dstfockwell'
     else:
        name_str = '1d'
+
+    if config.apply_valid_set == 'single':
+       print(config.subject_idx)
+       assert config.subject_idx != "none", "subject should be mentioned in single mode"
+       name_str = name_str + '_' + config.subject_idx
     trainset = HDF5Dataset('./data/train_'+name_str+'.h5', config, add_trial=add_trial)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=True)
+    if config.apply_valid_set == 'single':
+       return trainloader, None, None
     if valid_check:
        validset = HDF5Dataset('./data/valid_'+name_str+'.h5', config, add_trial=add_trial)
     testset  = HDF5Dataset('./data/test_'+name_str+'.h5', config, add_trial=add_trial)
