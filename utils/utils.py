@@ -27,7 +27,7 @@ def test(model, dataloader, config, name_str):
     if config.maj_vote:
        return test_majority_voting(model, dataloader, config, name_str)
     trans_net = None
-    if config.transform != "nothing":
+    if config.transform != "nothing" and config.transform != 'csp':
        trans_net = trans_loader(config)
        tras_net.eval()
 
@@ -40,8 +40,9 @@ def test(model, dataloader, config, name_str):
         for batch_idx, (inputs, targets, subjects) in enumerate(dataloader):
             inputs, targets = inputs.to(config.device), targets.to(config.device)
             outputs = get_outputs(model, inputs, config, transformer=trans_net)
-            _, predicted = outputs.max(1)
-            #predicted = outputs.round()
+            predicted = torch.sigmoid(outputs).round()
+#            _, predicted = outputs.max(1)
+#            predicted = outputs.round()
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
             progress_bar(batch_idx, len(dataloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
@@ -70,7 +71,8 @@ def test_majority_voting(model, dataloader, config, name_str):
         for batch_idx, (inputs, targets, subjects, trials, conditions) in enumerate(dataloader):
             inputs, targets, trials, conditions = inputs.to(config.device), targets.to(config.device), trials.to(config.device), conditions.to(config.device)
             outputs = get_outputs(model, inputs, config, transformer=trans_net)
-            _, predicted = outputs.max(1)
+            predicted = torch.sigmoid(outputs).round()
+            #_, predicted = outputs.max(1)
             #predicted = outputs.round()
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
@@ -117,6 +119,8 @@ def get_outputs(net, inputs, config, transformer=None):
 #       outputs = nn.functional.logsoftmax(outputs,dim=1)
     else:
        outputs = net(inputs.float())
+    if config.model_type == 'eegnet':
+       outputs = outputs.squeeze(1)
     return outputs
 
 def count_num_classes(dataloader, label):
@@ -151,7 +155,8 @@ def Normalize(ave, std, x):
 
 def scale(X):
     min_des, max_des   = -1, 1
-    min_curr, max_curr = -332718.2, 29996.145
+#    min_curr, max_curr = -332718.2, 29996.145
+    min_curr, max_curr = -327.59784, 356.42856
     #X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     X_std = (X - min_curr) / (max_curr - min_curr)
     X_scaled = X_std * (max_des - min_des) + min_des
@@ -217,7 +222,7 @@ def model_loader(config, kernel_size):
        return Conv1D(config, kernel_size)
     elif config.model_type == 'eegnet':
        from braindecode.models import EEGNetv4
-       return EEGNetv4(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
+       return EEGNetv4(in_chans=20,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
     elif config.model_type == 'shalloweeg':
        from braindecode.models import ShallowFBCSPNet
        return ShallowFBCSPNet(in_chans=config.n_channels,n_classes=config.n_classes,input_window_samples=config.window_len,final_conv_length='auto')
@@ -245,16 +250,27 @@ def data_loader(batch_size, num_workers, transform, valid_check, config, add_tri
        name_str = '2dstft'
     elif transform == 'stockwell':
        name_str = '2dstfockwell'
+    elif transform == 'csp':
+       name_str = '1d_csp'
     else:
        name_str = '1d'
+
+    if config.apply_valid_set == 'single':
+       print(config.subject_idx)
+       assert config.subject_idx != "none", "subject should be mentioned in single mode"
+       name_str = name_str + '_' + config.subject_idx
+    print('./data/train_'+name_str+'.h5')
     trainset = HDF5Dataset('./data/train_'+name_str+'.h5', config, add_trial=add_trial)
-    if valid_check:
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=True)
+    if config.apply_valid_set == 'single':
+       return trainloader, None, None
+    if valid_check == 'all':
        validset = HDF5Dataset('./data/valid_'+name_str+'.h5', config, add_trial=add_trial)
     testset  = HDF5Dataset('./data/test_'+name_str+'.h5', config, add_trial=add_trial)
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=True)
-    testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=False)
-    if valid_check:
+    testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+    if valid_check == 'all':
        validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)
        return trainloader, validloader, testloader
     return trainloader, None, testloader

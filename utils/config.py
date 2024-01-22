@@ -7,12 +7,13 @@ class Config:
           self.n_conditions = 4   # FF, EF, FT, ET
           self.n_channels   = 56  #56
           self.n_trial      = 36  # For Imaginary it should be 22
-          self.file_path    = './data/separate/'  # Path to save the h5 files
-          self.n_classes    = 2
+          self.file_path    = './data/'  # Path to save the h5 files
+          self.n_classes    = 1
+
           self.preprocess_normalize = False
-          self.preprocess_scale = True
+          self.preprocess_scale = False
           self.device       = 'cuda:0'
-          self.apply_valid_set = False
+          self.apply_valid_set = 'double'  # This defines to how many pieces we want to split the data ('all', 'double', 'single')
           self.realVSFake   = True
           self.data_path    = 'Img'    # Img vs Obs
           self.downsample   = False
@@ -38,8 +39,8 @@ class Config:
              self.window_inc   = 2
           else:
              self.n_timepoints = 2000
-             self.window_len  = 1500
-             self.window_inc  = 50
+             self.window_len  = 1900
+             self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
           # Stockwell Hyper-parameters
@@ -58,12 +59,12 @@ class Config:
     
           # Bad Subjects: [0,5,10,11,18]
           self.train_subjects  = []
-#          self.all_subjects    = np.array([1,2,3,4,6,7,8,9,12,13,14,15,16,17,19])
-          self.all_subjects    = np.array([1,2,3,4,6,7,8])
+          self.all_subjects    = np.array([1,2,3,4,6,7,8,9,12,13,14,15,16,17,19])
+#          self.all_subjects    = np.array([1,2,3,4,6,7,8])
           self.valid_subjects  = []
           self.test_subjects   = []
           if self.realVSFake:
-             self.conditions      = [0,1,2,3]
+             self.conditions      = [0,2]
           else:
              self.conditions      = [2,3]
 
