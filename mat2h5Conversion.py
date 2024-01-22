@@ -82,14 +82,14 @@ def generate_data(data_type):
         data_shape = (n_samples, config.n_channels, config.window_len)
         chunk_shape = (1, config.n_channels, config.window_len)
         path_name_str = '1d'
-    compression_type = "gzip"
+    compression_type = None
     chunks_type = (10,)
     f_data = h5py.File(config.file_path+data_type+'_'+path_name_str+'.h5', "w")
-    f_data.create_dataset("data",      data_shape,    compression=compression_type)
-    f_data.create_dataset("label",     (n_samples,),  compression=compression_type)
-    f_data.create_dataset("subject",   (n_samples,),  compression=compression_type)
-    f_data.create_dataset("trial",     (n_samples,),  compression=compression_type)
-    f_data.create_dataset("condition", (n_samples,),  compression=compression_type)
+    f_data.create_dataset("data",      data_shape)
+    f_data.create_dataset("label",     (n_samples,))
+    f_data.create_dataset("subject",   (n_samples,))
+    f_data.create_dataset("trial",     (n_samples,))
+    f_data.create_dataset("condition", (n_samples,))
 
     f = h5py.File(path,'r',libver='latest')
 
@@ -98,8 +98,6 @@ def generate_data(data_type):
             ref = f["data"][condition][subject]
             eeg = np.array(f[ref])
             print(f'{data_type} subject#: {subject}, condition: {condition}')
-            ref = f["data"][condition][subject]
-            eeg = np.array(f[ref])
             sub_trials  = trials_list[subject][condition]
             for i_trial in range(sub_trials):
                 eeg_scaled = eeg[i_trial,:,:]

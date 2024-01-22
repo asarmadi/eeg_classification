@@ -36,9 +36,9 @@ cudnn.benchmark = True
 print("Test Performance:")
 test_acc, target_test  = test(net, testloader, config, "test")
 
-#if config.apply_valid_set:
-#   print("Validation Performance:")
-#   valid_acc, target_valid = test(net, validloader, config, "valid")
+if config.apply_valid_set == 'all':
+   print("Validation Performance:")
+   valid_acc, target_valid = test(net, validloader, config, "valid")
 
 #print("Train Performance:")
 #train_acc, _ = test(net, trainloader, config, "train")

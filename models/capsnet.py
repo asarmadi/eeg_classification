@@ -13,19 +13,19 @@ class ConvLayer(nn.Module):
         self.conv  = nn.Conv2d(in_channels=in_channels,
                               out_channels=out_channels,
                               kernel_size=kernel_size,
-                              stride=(3,1)
+                              stride=(1,3)
                               )
 
         self.conv1 = nn.Conv2d(in_channels=out_channels,
                               out_channels=out_channels,
                               kernel_size=kernel_size,
-                              stride=(3,1)
+                              stride=(1,3)
                               )
 
         self.conv2 = nn.Conv2d(in_channels=out_channels,
                               out_channels=out_channels,
                               kernel_size=kernel_size,
-                              stride=(3,1)
+                              stride=(1,3)
                               )
 
         self.avg1 = nn.AvgPool2d(2)
@@ -33,7 +33,8 @@ class ConvLayer(nn.Module):
     def forward(self, x):
         x = F.relu(self.conv(x))
         x = F.relu(self.conv1(x))
-        return self.avg1(F.relu(self.conv2(x)))
+        x = self.avg1(F.relu(self.conv2(x)))
+        return x
 
 
 class PrimaryCaps(nn.Module):
@@ -63,7 +64,7 @@ class DigitCaps(nn.Module):
         self.in_channels  = in_channels
         self.num_routes   = num_routes
         self.num_capsules = num_capsules
-        self.logsoft = nn.LogSoftmax(dim=1)
+        self.logsoft = nn.Softmax(dim=1)  # I changed it from LogSoftmax
 
         self.W = nn.Parameter(torch.randn(1, num_routes, num_capsules, out_channels, in_channels))
 
@@ -151,9 +152,9 @@ class CapsNet(nn.Module):
         x1 = self.conv_layer(data)
  #       print(f'X1: {x1.shape}')
         x2 = self.primary_capsules(x1)
-  #      print(f'X2: {x2.shape}')
+#        print(f'X2: {x2.shape}')
         output = self.digit_capsules(x2)
-   #     print(f'output: {output.shape}')
+ #       print(f'output: {output.shape}')
         return output, None, None
 #        reconstructions, masked = self.decoder(output, data)
 #        return output, reconstructions, masked

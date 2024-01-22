@@ -30,6 +30,7 @@ MODEL_TYPE=eegnet
 TRANSFORM=csp
 python -W ignore main.py --lr ${LR} --batch_size ${BATCH_SIZE} --wd ${WD} --model_type ${MODEL_TYPE} --n_epochs ${NEPOCHS} --kernel_size ${KERNEL_SIZE} --transform ${TRANSFORM} --subject ${TEST_TARGET}
 #done
+
 #### Trainin MLP using AE
 #NEPOCHS=201
 #MODEL_TYPE=mlp

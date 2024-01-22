@@ -20,8 +20,8 @@ class Config:
           self.transform    = ""    # Specifies the transformation to be applied to the input (e.g., stockwell, stft)
 
           # Stockwell
-          #self.channels_list = [1, 29, 38]
-          self.channels_list = [i for i in range(0,self.n_channels)]
+          self.channels_list = [15,17,18, 20,43,44,46,48,49]
+#          self.channels_list = [i for i in range(0,self.n_channels)]
 
 
           # Majority Voting Properties
@@ -44,7 +44,7 @@ class Config:
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
           # Stockwell Hyper-parameters
-          self.fmax     = 100
+          self.fmax     = 30
           self.fmin     = 0
           self.sig_time = 2
 
@@ -70,11 +70,11 @@ class Config:
 
           if model == 'capsnet':
             # CNN (cnn)
-            self.cnn_in_channels  = 1
+            self.cnn_in_channels  = len(self.channels_list)
             if self.apply_gauss:
                self.cnn_in_channels  = 2*self.mapping_size
             self.cnn_out_channels = 32
-            self.cnn_kernel_size  = 9
+            self.cnn_kernel_size  = 5
 
             # Primary Capsule (pc)
             self.pc_num_capsules = 8
@@ -86,8 +86,8 @@ class Config:
             # Digit Capsule (dc)
             self.dc_num_capsules = 1
             self.dc_num_routes   = self.pc_num_routes
-            self.dc_in_channels  = 22
-            self.dc_out_channels = 2
+            self.dc_in_channels  = 48
+            self.dc_out_channels = 1
 
             # Decoder
             self.input_width  = self.window_len

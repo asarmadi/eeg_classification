@@ -40,9 +40,9 @@ def test(model, dataloader, config, name_str):
         for batch_idx, (inputs, targets, subjects) in enumerate(dataloader):
             inputs, targets = inputs.to(config.device), targets.to(config.device)
             outputs = get_outputs(model, inputs, config, transformer=trans_net)
+            #_, predicted = outputs.max(1)
             predicted = torch.sigmoid(outputs).round()
-#            _, predicted = outputs.max(1)
-#            predicted = outputs.round()
+            #predicted = outputs.round()
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
             progress_bar(batch_idx, len(dataloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
@@ -71,8 +71,8 @@ def test_majority_voting(model, dataloader, config, name_str):
         for batch_idx, (inputs, targets, subjects, trials, conditions) in enumerate(dataloader):
             inputs, targets, trials, conditions = inputs.to(config.device), targets.to(config.device), trials.to(config.device), conditions.to(config.device)
             outputs = get_outputs(model, inputs, config, transformer=trans_net)
-            predicted = torch.sigmoid(outputs).round()
             #_, predicted = outputs.max(1)
+            predicted = torch.sigmoid(outputs).round()
             #predicted = outputs.round()
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
@@ -115,8 +115,10 @@ def get_outputs(net, inputs, config, transformer=None):
        inputs = transformer.get_feature(inputs)
     if config.model_type == 'capsnet':
        outputs, reconstructions, masked = net(inputs)
-       outputs = outputs.reshape(-1,config.n_classes)
+       outputs = outputs.reshape(-1,)
 #       outputs = nn.functional.logsoftmax(outputs,dim=1)
+    elif config.model_type == 'mlp':
+       outputs = net(inputs.float()).squeeze(1)
     else:
        outputs = net(inputs.float())
     if config.model_type == 'eegnet':
@@ -268,7 +270,6 @@ def data_loader(batch_size, num_workers, transform, valid_check, config, add_tri
        validset = HDF5Dataset('./data/valid_'+name_str+'.h5', config, add_trial=add_trial)
     testset  = HDF5Dataset('./data/test_'+name_str+'.h5', config, add_trial=add_trial)
 
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=True)
     testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
     if valid_check == 'all':
        validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)

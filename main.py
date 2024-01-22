@@ -50,7 +50,7 @@ if config.transform != "nothing":
 
 pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
 print(f'Number of Parameters: {pytorch_total_params}')
-optimizer = optim.AdamW(net.parameters(), lr=args.lr,  weight_decay=args.wd)
+optimizer = optim.Adam(net.parameters(), lr=args.lr,  weight_decay=args.wd)
 
 cudnn.benchmark = True
 
@@ -60,8 +60,11 @@ if 'eeg' in config.model_type:
 #   criterion = torch.nn.CrossEntropyLoss()
 elif 'ae' in config.model_type:
    criterion = torch.nn.MSELoss()
+elif 'mlp' in config.model_type:
+   criterion = torch.nn.BCELoss()
 else:
-   criterion = nn.NLLLoss()
+   criterion = torch.nn.BCEWithLogitsLoss()
+#   criterion = nn.NLLLoss()
 scheduler = MultiStepLR(optimizer, milestones=[200,300], gamma=0.1)
 
 def train():
@@ -71,7 +74,6 @@ def train():
     total = 0
     for batch_idx, (inputs, targets, _) in enumerate(trainloader):
         inputs, targets = inputs.to(args.device), targets.to(args.device)
-
         optimizer.zero_grad()
         outputs = get_outputs(net, inputs,config, transformer=trans_net)
         if 'ae' in config.model_type:
@@ -83,8 +85,10 @@ def train():
         train_loss += loss.item()
         total += targets.size(0)
         if not 'ae' in config.model_type:
-#           _, predicted = outputs.max(1)
+#           if config.model_type == 'mlp':
            predicted = torch.sigmoid(outputs).round()
+ #          else:
+  #            _, predicted = outputs.max(1)
            correct += predicted.eq(targets).sum().item()
            progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                   % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
