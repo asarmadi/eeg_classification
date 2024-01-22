@@ -1,4 +1,4 @@
-LR=0.01
+LR=0.001
 WD=0.00
 BATCH_SIZE=32
 KERNEL_SIZE=3
@@ -16,20 +16,18 @@ fi
 #for TARGET in 1 2 3 4 6 7 8 9 12 13 14 15 16 17 19; do
 #TEST_TARGET=${TARGET}
 TEST_TARGET=12
-#TRANSFORM=1d
+TRANSFORM=stockwell
 #python -W ignore mat2h5ConversionFull.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
 #python -W ignore mat2h5Conversion.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
-#python -W ignore mat2h5ConversionSeparateFiles.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
-#done
+python -W ignore mat2h5ConversionSeparateFiles.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
 
-#for TARGET in 1 2 3 4 6 7 8 9 12 13 14 15 16 17 19; do
-#TEST_TARGET=${TARGET}
+
 ##### Training AE ######
-NEPOCHS=101
-MODEL_TYPE=eegnet
-TRANSFORM=nothing
-#python -W ignore main.py --lr ${LR} --batch_size ${BATCH_SIZE} --wd ${WD} --model_type ${MODEL_TYPE} --n_epochs ${NEPOCHS} --kernel_size ${KERNEL_SIZE} --transform ${TRANSFORM} --subject ${TEST_TARGET}
-#done
+NEPOCHS=41
+MODEL_TYPE=cnn
+#TRANSFORM=nothing
+#python -W ignore main.py --lr ${LR} --batch_size ${BATCH_SIZE} --wd ${WD} --model_type ${MODEL_TYPE} --n_epochs ${NEPOCHS} --kernel_size ${KERNEL_SIZE} --transform ${TRANSFORM}
+
 #### Trainin MLP using AE
 #NEPOCHS=201
 #MODEL_TYPE=mlp
@@ -38,8 +36,6 @@ TRANSFORM=nothing
 
 
 #### Testing MLP
-BATCH_SIZE=8
-for TARGET in 1 2 3 4 6 7 8 9 12 13 14 15 16 17 19; do
 #python -W ignore test_performance.py --model_type ${MODEL_TYPE} --batch_size ${BATCH_SIZE} --kernel_size ${KERNEL_SIZE} --transform ${TRANSFORM} ${MAJ_VOTE_ARG}
-python -W ignore voting.py --model_type ${MODEL_TYPE} --batch_size ${BATCH_SIZE} --kernel_size ${KERNEL_SIZE} --transform ${TRANSFORM} ${MAJ_VOTE_ARG} --target_test ${TEST_TARGET}
-done
+
+#done

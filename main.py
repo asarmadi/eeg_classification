@@ -21,7 +21,6 @@ parser.add_argument('--num_workers', default=4, type=int, help='Test Batch Size'
 parser.add_argument('--lr', default=0.001,type=float,help='Learning Rate')
 parser.add_argument('--wd', default=0.01,type=float,help='Weight Decay')
 parser.add_argument('--transform', default="nothing", type=str, help='Apply transform (e.g., stft, stockwell)')
-parser.add_argument('--subject', default="none", type=str, help='Subject for training')
 args = parser.parse_args()
 
 best_acc = 0
@@ -31,11 +30,6 @@ config.transform=args.transform
 
 if not os.path.isdir('./checkpoint/'):
    os.makedirs('./checkpoint/')
-
-config.subject_idx = args.subject
-name_str = ''
-if config.apply_valid_set == 'single':
-   name_str = '_'+args.subject
 
 trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.transform, config.apply_valid_set,config=config)
 
@@ -51,7 +45,7 @@ if config.transform != "nothing":
 
 pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
 print(f'Number of Parameters: {pytorch_total_params}')
-optimizer = optim.Adam(net.parameters(), lr=args.lr,  weight_decay=args.wd)
+optimizer = optim.AdamW(net.parameters(), lr=args.lr,  weight_decay=args.wd)
 
 cudnn.benchmark = True
 
@@ -97,13 +91,13 @@ for epoch in range(1,args.n_epochs):
     print('\nEpoch: {}/{}'.format(epoch,args.n_epochs))
     clean_acc = train()
 
-    if config.apply_valid_set == 'all':
+    if config.apply_valid_set:
        clean_acc,_ = test(net, validloader, config, "valid")
     if epoch == 1:
        best_acc = clean_acc
     if (clean_acc >= best_acc):
        print('Saving..')
-       torch.save(net.state_dict(), './checkpoint/Net_'+config.model_type+name_str+'.pth')
+       torch.save(net.state_dict(), './checkpoint/Net_'+config.model_type+'.pth')
        best_acc = clean_acc
 
 

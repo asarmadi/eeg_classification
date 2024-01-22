@@ -15,20 +15,15 @@ config.train_subjects = np.setdiff1d(config.all_subjects, config.test_subjects)
 all_trials   =  np.array(range(0,config.n_trial))
 test_trials  = all_trials
 
-name_str = ''
-if config.apply_valid_set == 'all':
+if config.apply_valid_set:
    valid_sub = np.random.choice(config.train_subjects,3,replace=False)
    config.valid_subjects = np.array(valid_sub)
    config.train_subjects = np.setdiff1d(config.train_subjects, config.valid_subjects)
    valid_trials = all_trials
    print(f'Valid Subjects: {config.valid_subjects}')
    data_sets = ['train', 'test', 'valid']
-elif config.apply_valid_set == 'double':
+else:
    data_sets = ['train', 'test']
-elif config.apply_valid_set == 'single':
-   config.train_subjects = config.test_subjects
-   name_str  = '_'+args.target_test
-   data_sets = ['train']
 
 print(f'Test Subjects:  {config.test_subjects}')
 print(f'Train Subjects: {config.train_subjects}')
@@ -87,9 +82,9 @@ def generate_data(data_type):
         data_shape = (n_samples, config.n_channels, config.window_len)
         chunk_shape = (1, config.n_channels, config.window_len)
         path_name_str = '1d'
-    compression_type = None
+    compression_type = "gzip"
     chunks_type = (10,)
-    f_data = h5py.File(config.file_path+data_type+'_'+path_name_str+name_str+'.h5', "w")
+    f_data = h5py.File(config.file_path+data_type+'_'+path_name_str+'.h5', "w")
     f_data.create_dataset("data",      data_shape,    compression=compression_type)
     f_data.create_dataset("label",     (n_samples,),  compression=compression_type)
     f_data.create_dataset("subject",   (n_samples,),  compression=compression_type)
