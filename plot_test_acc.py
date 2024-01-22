@@ -7,15 +7,44 @@ import pandas as pd
 import numpy as np
 from sklearn import metrics
 
+plot_csp = False
+
 config = Config()
 #config.all_subjects = np.array([1,2,3,4,6])
 color_codes = ['-g.', '-b.', '-r.']
-if config.apply_valid_set:
+if config.apply_valid_set == 'all':
    datasets = ['train','test','valid']
 else:
    datasets = ['test']
 
-#filePath = './out/'
+def plot_dict(dict_in, title):
+    data_y = np.array([i for i in dict_in.values()])
+    data_x = np.array([str(key_val) for key_val in dict_in.keys()])
+    print(data_y)
+    print(data_x)
+    plt.figure(0)
+    plt.plot(data_x,  data_y,  '-b.')
+    plt.xticks(data_x)
+    plt.ylabel("Accuracy (%)")
+    plt.xlabel("Subject in Test set")
+    plt.title(f"{title} Mean: {np.mean(data_y):.2f} STD: {np.std(data_y):.2f}")
+    plt.tight_layout()
+    plt.savefig('./Figs/Accs'+title+'.png')
+    plt.close()
+
+
+if plot_csp:
+   test_acc  = {}
+   train_acc = {}
+   filePath = './out/'
+   for train_idx in config.all_subjects:
+      results = pd.read_csv(filePath+"test_results_csp_"+str(train_idx)+".csv", encoding='utf-8')
+      train_acc[results['Target'][0]] = results['Acc'][0]
+      test_acc[results['Target'][1]]  = results['Acc'][1]
+   plot_dict(train_acc, "Train Accuracy CSP + MLP")
+   plot_dict(test_acc, "Test Accuracy CSP + MLP")
+   
+
 
 test_acc_major  = {}
 valid_acc_major = {}
@@ -135,26 +164,31 @@ plt.ylabel("Accuracy (%)")
 plt.xlabel("Subject in Test set")
 plt.legend()
 plt.tight_layout()
+
 plt.savefig('./Figs/Accs.png')
 plt.close()
 
 plt.figure(11)
+data_y = np.array([i for i in acc.values()])
 plt.plot([str(key_val) for key_val in acc.keys()], list(acc.values()),          '-g.', label='Accuracy')
 plt.plot([str(key_val) for key_val in precis.keys()], list(precis.values()),    '-r.', label='Precision')
 plt.plot([str(key_val) for key_val in recalls.keys()], list(recalls.values()),  '-b.', label='Recall')
 #plt.plot([str(key_val) for key_val in f1scores.keys()], list(f1scores.values()),'-k.', label='F1-Score')
 plt.xlabel("Subject in Test set")
 plt.legend()
+plt.title(f"Accuracy Mean: {np.mean(data_y):.2f} STD: {np.std(data_y):.2f}")
 plt.tight_layout()
 plt.savefig('./Figs/multi_acc.png')
 plt.close()
 
 plt.figure(12)
+data_y = np.array([i for i in macc.values()])
 plt.plot([str(key_val) for key_val in macc.keys()], list(macc.values()),          '-g.', label='Accuracy')
 plt.plot([str(key_val) for key_val in mprecis.keys()], list(mprecis.values()),    '-r.', label='Precision')
 plt.plot([str(key_val) for key_val in mrecalls.keys()], list(mrecalls.values()),  '-b.', label='Recall')
 plt.xlabel("Subject in Test set")
 plt.legend()
+plt.title(f"MV Accuracy Mean: {np.mean(data_y):.2f} STD: {np.std(data_y):.2f}")
 plt.tight_layout()
 plt.savefig('./Figs/multi_acc_major.png')
 plt.close()

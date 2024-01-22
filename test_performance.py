@@ -36,16 +36,16 @@ cudnn.benchmark = True
 print("Test Performance:")
 test_acc, target_test  = test(net, testloader, config, "test")
 
-if config.apply_valid_set:
-   print("Validation Performance:")
-   valid_acc, target_valid = test(net, validloader, config, "valid")
+#if config.apply_valid_set:
+#   print("Validation Performance:")
+#   valid_acc, target_valid = test(net, validloader, config, "valid")
 
 #print("Train Performance:")
 #train_acc, _ = test(net, trainloader, config, "train")
 train_acc = 100.
 
 header_name = 'Name,Acc,Target'
-if config.apply_valid_set:
+if config.apply_valid_set == 'all':
    data = [['Train', train_acc, 0], ['Test', test_acc, target_test[0]], ['Valid', valid_acc, target_valid[0]] ]
 else:
    data = [['Train', train_acc, 0], ['Test', test_acc, target_test[0]] ]

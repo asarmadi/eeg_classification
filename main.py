@@ -12,7 +12,7 @@ from utils.gaussianTrans import GaussianFourierFeatureTransform
 
 
 parser = argparse.ArgumentParser(description='EEG Classification')
-parser.add_argument('--device', default='cuda:0',type=str, help='GPU device')
+parser.add_argument('--device', default='cuda:1',type=str, help='GPU device')
 parser.add_argument('--model_type', default='cnn',type=str, help='cnn, caspnet, lstm')
 parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
 parser.add_argument('--kernel_size', default=32, type=int, help='Model Kernel Size')
@@ -37,7 +37,7 @@ name_str = ''
 if config.apply_valid_set == 'single':
    name_str = '_'+args.subject
 
-trainloader, validloader, _ = data_loader(args.batch_size, args.num_workers, args.transform, config.apply_valid_set,config=config)
+trainloader, validloader,testloader = data_loader(args.batch_size, args.num_workers, args.transform, config.apply_valid_set,config=config)
 
 net = model_loader(config,args.kernel_size)
 #net= nn.DataParallel(net)
@@ -57,7 +57,8 @@ cudnn.benchmark = True
 
 #criterion = nn.BCELoss()
 if 'eeg' in config.model_type:
-   criterion = torch.nn.CrossEntropyLoss()
+   criterion = torch.nn.BCEWithLogitsLoss()
+#   criterion = torch.nn.CrossEntropyLoss()
 elif 'ae' in config.model_type:
    criterion = torch.nn.MSELoss()
 else:
@@ -77,13 +78,14 @@ def train():
         if 'ae' in config.model_type:
            loss = criterion(outputs, inputs)
         else:
-           loss = criterion(outputs, targets.long())
+           loss = criterion(outputs, targets)
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
         total += targets.size(0)
         if not 'ae' in config.model_type:
-           _, predicted = outputs.max(1)
+#           _, predicted = outputs.max(1)
+           predicted = torch.sigmoid(outputs).round()
            correct += predicted.eq(targets).sum().item()
            progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                   % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
@@ -99,6 +101,8 @@ for epoch in range(1,args.n_epochs):
 
     if config.apply_valid_set == 'all':
        clean_acc,_ = test(net, validloader, config, "valid")
+#    else:
+ #      test(net, testloader, config, "valid")
     if epoch == 1:
        best_acc = clean_acc
     if (clean_acc >= best_acc):

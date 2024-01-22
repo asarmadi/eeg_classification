@@ -5,7 +5,11 @@ class Conv1D(nn.Module):
 
     def __init__(self, config, kernel_size):
         super(Conv1D, self).__init__()
-        self.conv_layer1 = nn.Sequential(nn.Conv1d(config.n_channels, 2*config.n_channels, kernel_size=kernel_size),\
+        if config.transform == 'csp':
+           in_channels = 20
+        else:
+           in_channels = config.n_channels
+        self.conv_layer1 = nn.Sequential(nn.Conv1d(in_channels, 2*config.n_channels, kernel_size=kernel_size),\
                                          nn.BatchNorm1d(2*config.n_channels),nn.ReLU(inplace=True))
         out_shape = (config.window_len-kernel_size+1)
 
