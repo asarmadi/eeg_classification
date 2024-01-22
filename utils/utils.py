@@ -40,7 +40,8 @@ def test(model, dataloader, config, name_str):
         for batch_idx, (inputs, targets, subjects) in enumerate(dataloader):
             inputs, targets = inputs.to(config.device), targets.to(config.device)
             outputs = get_outputs(model, inputs, config, transformer=trans_net)
-            _, predicted = outputs.max(1)
+            #_, predicted = outputs.max(1)
+            predicted = torch.sigmoid(outputs).round()
             #predicted = outputs.round()
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
@@ -70,7 +71,8 @@ def test_majority_voting(model, dataloader, config, name_str):
         for batch_idx, (inputs, targets, subjects, trials, conditions) in enumerate(dataloader):
             inputs, targets, trials, conditions = inputs.to(config.device), targets.to(config.device), trials.to(config.device), conditions.to(config.device)
             outputs = get_outputs(model, inputs, config, transformer=trans_net)
-            _, predicted = outputs.max(1)
+            #_, predicted = outputs.max(1)
+            predicted = torch.sigmoid(outputs).round()
             #predicted = outputs.round()
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
@@ -113,10 +115,12 @@ def get_outputs(net, inputs, config, transformer=None):
        inputs = transformer.get_feature(inputs)
     if config.model_type == 'capsnet':
        outputs, reconstructions, masked = net(inputs)
-       outputs = outputs.reshape(-1,config.n_classes)
+       outputs = outputs.reshape(-1,)
 #       outputs = nn.functional.logsoftmax(outputs,dim=1)
+    elif config.model_type == 'mlp':
+       outputs = net(inputs.float()).squeeze(1)
     else:
-       outputs = net(inputs.float())
+       outputs = net(inputs.float()).squeeze(1)
     return outputs
 
 def count_num_classes(dataloader, label):
@@ -151,7 +155,8 @@ def Normalize(ave, std, x):
 
 def scale(X):
     min_des, max_des   = -1, 1
-    min_curr, max_curr = -332718.2, 29996.145
+#    min_curr, max_curr = -332718.2, 29996.145
+    min_curr, max_curr = -327.59784, 356.42856
     #X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
     X_std = (X - min_curr) / (max_curr - min_curr)
     X_scaled = X_std * (max_des - min_des) + min_des
@@ -240,21 +245,21 @@ def model_loader(config, kernel_size):
        return False
 
 def data_loader(batch_size, num_workers, transform, valid_check, config, add_trial=False):
-    from utils.hdf5_dataset_ind import HDF5Dataset
+    from utils.hdf5_dataset import HDF5Dataset
     if transform == 'stf':
        name_str = '2dstft'
     elif transform == 'stockwell':
        name_str = '2dstfockwell'
     else:
        name_str = '1d'
-    trainset = HDF5Dataset('train', config, add_trial=add_trial)
-    if valid_check:
-       validset = HDF5Dataset('valid', config, add_trial=add_trial)
-    testset  = HDF5Dataset('test', config, add_trial=add_trial)
+    trainset = HDF5Dataset('./data/train_'+name_str+'.h5', config, add_trial=add_trial)
+    if valid_check == 'all':
+       validset = HDF5Dataset('./data/valid_'+name_str+'.h5', config, add_trial=add_trial)
+    testset  = HDF5Dataset('./data/test_'+name_str+'.h5', config, add_trial=add_trial)
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=True)
     testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=False)
-    if valid_check:
+    if valid_check == 'all':
        validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)
        return trainloader, validloader, testloader
     return trainloader, None, testloader

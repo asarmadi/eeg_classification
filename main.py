@@ -17,7 +17,7 @@ parser.add_argument('--model_type', default='cnn',type=str, help='cnn, caspnet, 
 parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
 parser.add_argument('--kernel_size', default=32, type=int, help='Model Kernel Size')
 parser.add_argument('--n_epochs', default=500, type=int, help='Number of epochs')
-parser.add_argument('--num_workers', default=8, type=int, help='Test Batch Size')
+parser.add_argument('--num_workers', default=4, type=int, help='Test Batch Size')
 parser.add_argument('--lr', default=0.001,type=float,help='Learning Rate')
 parser.add_argument('--wd', default=0.01,type=float,help='Weight Decay')
 parser.add_argument('--transform', default="nothing", type=str, help='Apply transform (e.g., stft, stockwell)')
@@ -45,7 +45,7 @@ if config.transform != "nothing":
 
 pytorch_total_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
 print(f'Number of Parameters: {pytorch_total_params}')
-optimizer = optim.AdamW(net.parameters(), lr=args.lr,  weight_decay=args.wd)
+optimizer = optim.Adam(net.parameters(), lr=args.lr,  weight_decay=args.wd)
 
 cudnn.benchmark = True
 
@@ -54,8 +54,11 @@ if 'eeg' in config.model_type:
    criterion = torch.nn.CrossEntropyLoss()
 elif 'ae' in config.model_type:
    criterion = torch.nn.MSELoss()
+elif 'mlp' in config.model_type:
+   criterion = torch.nn.BCELoss()
 else:
-   criterion = nn.NLLLoss()
+   criterion = torch.nn.BCEWithLogitsLoss()
+#   criterion = nn.NLLLoss()
 scheduler = MultiStepLR(optimizer, milestones=[200,300], gamma=0.1)
 
 def train():
@@ -70,13 +73,16 @@ def train():
         if 'ae' in config.model_type:
            loss = criterion(outputs, inputs)
         else:
-           loss = criterion(outputs, targets.long())
+           loss = criterion(outputs, targets)
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
         total += targets.size(0)
         if not 'ae' in config.model_type:
-           _, predicted = outputs.max(1)
+#           if config.model_type == 'mlp':
+           predicted = torch.sigmoid(outputs).round()
+ #          else:
+  #            _, predicted = outputs.max(1)
            correct += predicted.eq(targets).sum().item()
            progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                   % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))

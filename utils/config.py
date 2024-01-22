@@ -7,8 +7,8 @@ class Config:
           self.n_conditions = 4   # FF, EF, FT, ET
           self.n_channels   = 56  #56
           self.n_trial      = 36  # For Imaginary it should be 22
-          self.file_path    = './data/separate/'  # Path to save the h5 files
-          self.n_classes    = 2
+          self.file_path    = './data/'  # Path to save the h5 files
+          self.n_classes    = 1
           self.preprocess_normalize = False
           self.preprocess_scale = True
           self.device       = 'cuda:0'
@@ -38,12 +38,12 @@ class Config:
              self.window_inc   = 2
           else:
              self.n_timepoints = 2000
-             self.window_len  = 1500
-             self.window_inc  = 50
+             self.window_len  = 1700
+             self.window_inc  = 10
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
           # Stockwell Hyper-parameters
-          self.fmax     = 100
+          self.fmax     = 30
           self.fmin     = 0
           self.sig_time = 2
 
@@ -58,22 +58,22 @@ class Config:
     
           # Bad Subjects: [0,5,10,11,18]
           self.train_subjects  = []
-#          self.all_subjects    = np.array([1,2,3,4,6,7,8,9,12,13,14,15,16,17,19])
-          self.all_subjects    = np.array([1,2,3,4,6,7,8])
+          self.all_subjects    = np.array([1,2,3,4,6,7,8,9,12,13,14,15,16,17,19])
+#          self.all_subjects    = np.array([1,2,3,4,6,7,8])
           self.valid_subjects  = []
           self.test_subjects   = []
           if self.realVSFake:
-             self.conditions      = [0,1,2,3]
+             self.conditions      = [0,2]
           else:
              self.conditions      = [2,3]
 
           if model == 'capsnet':
             # CNN (cnn)
-            self.cnn_in_channels  = 1
+            self.cnn_in_channels  = len(self.channels_list)
             if self.apply_gauss:
                self.cnn_in_channels  = 2*self.mapping_size
             self.cnn_out_channels = 32
-            self.cnn_kernel_size  = 9
+            self.cnn_kernel_size  = 5
 
             # Primary Capsule (pc)
             self.pc_num_capsules = 8
@@ -85,8 +85,8 @@ class Config:
             # Digit Capsule (dc)
             self.dc_num_capsules = 1
             self.dc_num_routes   = self.pc_num_routes
-            self.dc_in_channels  = 22
-            self.dc_out_channels = 2
+            self.dc_in_channels  = 48
+            self.dc_out_channels = 1
 
             # Decoder
             self.input_width  = self.window_len

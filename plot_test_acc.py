@@ -8,9 +8,9 @@ import numpy as np
 from sklearn import metrics
 
 config = Config()
-#config.all_subjects = np.array([1,2,3,4,6])
+config.all_subjects    = np.array([1,2,3,4,6,7,8])
 color_codes = ['-g.', '-b.', '-r.']
-if config.apply_valid_set:
+if config.apply_valid_set == 'all':
    datasets = ['train','test','valid']
 else:
    datasets = ['test']
@@ -139,22 +139,26 @@ plt.savefig('./Figs/Accs.png')
 plt.close()
 
 plt.figure(11)
+data_y = np.array([i for i in acc.values()])
 plt.plot([str(key_val) for key_val in acc.keys()], list(acc.values()),          '-g.', label='Accuracy')
 plt.plot([str(key_val) for key_val in precis.keys()], list(precis.values()),    '-r.', label='Precision')
 plt.plot([str(key_val) for key_val in recalls.keys()], list(recalls.values()),  '-b.', label='Recall')
 #plt.plot([str(key_val) for key_val in f1scores.keys()], list(f1scores.values()),'-k.', label='F1-Score')
 plt.xlabel("Subject in Test set")
 plt.legend()
+plt.title(f"Accuracy Mean: {np.mean(data_y):.2f} STD: {np.std(data_y):.2f}")
 plt.tight_layout()
 plt.savefig('./Figs/multi_acc.png')
 plt.close()
 
 plt.figure(12)
+data_y = np.array([i for i in macc.values()])
 plt.plot([str(key_val) for key_val in macc.keys()], list(macc.values()),          '-g.', label='Accuracy')
 plt.plot([str(key_val) for key_val in mprecis.keys()], list(mprecis.values()),    '-r.', label='Precision')
 plt.plot([str(key_val) for key_val in mrecalls.keys()], list(mrecalls.values()),  '-b.', label='Recall')
 plt.xlabel("Subject in Test set")
 plt.legend()
+plt.title(f"MV Accuracy Mean: {np.mean(data_y):.2f} STD: {np.std(data_y):.2f}")
 plt.tight_layout()
 plt.savefig('./Figs/multi_acc_major.png')
 plt.close()
