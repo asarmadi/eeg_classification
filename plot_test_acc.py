@@ -10,7 +10,7 @@ from sklearn import metrics
 plot_csp = False
 
 config = Config()
-config.all_subjects    = np.array([1,2,3,4,6,7,8])
+#config.all_subjects    = np.array([1,2,3,4,6,7,8])
 color_codes = ['-g.', '-b.', '-r.']
 if config.apply_valid_set == 'all':
    datasets = ['train','test','valid']

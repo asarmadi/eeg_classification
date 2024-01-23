@@ -15,15 +15,17 @@ config.train_subjects = np.setdiff1d(config.all_subjects, config.test_subjects)
 all_trials   =  np.array(range(0,config.n_trial))
 test_trials  = all_trials
 
-if config.apply_valid_set:
+if config.apply_valid_set == 'all':
    valid_sub = np.random.choice(config.train_subjects,3,replace=False)
    config.valid_subjects = np.array(valid_sub)
    config.train_subjects = np.setdiff1d(config.train_subjects, config.valid_subjects)
    valid_trials = all_trials
    print(f'Valid Subjects: {config.valid_subjects}')
    data_sets = ['train', 'test', 'valid']
-else:
+elif config.apply_valid_set == 'double':
    data_sets = ['train', 'test']
+elif config.apply_valid_set == 'single':
+   data_sets = ['train']
 
 print(f'Test Subjects:  {config.test_subjects}')
 print(f'Train Subjects: {config.train_subjects}')

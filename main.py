@@ -20,6 +20,7 @@ parser.add_argument('--n_epochs', default=500, type=int, help='Number of epochs'
 parser.add_argument('--num_workers', default=4, type=int, help='Test Batch Size')
 parser.add_argument('--lr', default=0.001,type=float,help='Learning Rate')
 parser.add_argument('--wd', default=0.01,type=float,help='Weight Decay')
+parser.add_argument('--subject', default='',type=str, help='Target Subject')
 parser.add_argument('--transform', default="nothing", type=str, help='Apply transform (e.g., stft, stockwell)')
 args = parser.parse_args()
 
@@ -102,7 +103,7 @@ for epoch in range(1,args.n_epochs):
     print('\nEpoch: {}/{}'.format(epoch,args.n_epochs))
     clean_acc = train()
 
-    if config.apply_valid_set:
+    if config.apply_valid_set == 'all':
        clean_acc,_ = test(net, validloader, config, "valid")
 #    else:
  #      test(net, testloader, config, "valid")

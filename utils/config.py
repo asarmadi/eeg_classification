@@ -64,7 +64,7 @@ class Config:
           self.valid_subjects  = []
           self.test_subjects   = []
           if self.realVSFake:
-             self.conditions      = [0,2]
+             self.conditions      = [0,1,2,3]
           else:
              self.conditions      = [2,3]
 

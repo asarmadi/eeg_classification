@@ -2,6 +2,7 @@ import mne
 import h5py
 import argparse
 import numpy as np
+from utils.utils import stockwell
 from mne.decoding import CSP
 from sklearn.neural_network import MLPClassifier
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
@@ -37,12 +38,22 @@ with h5py.File(file_path, 'r',rdcc_nbytes=1024**2*4000,rdcc_nslots=1e7) as file:
 
 
 # Define and apply CSP
-n_components = 20
+n_components = 10
 csp = CSP(n_components=n_components, reg=None, log=None, norm_trace=False, transform_into='csp_space')
 csp.fit(train_data, train_labels)
 X_train_csp = csp.transform(train_data)
+fmax_samples = int(config.fmax*config.sig_time)
+data_shape = (X_train_csp.shape[0], n_components, fmax_samples+1, config.window_len)
+X_train_tra = np.zeros(data_shape)
+for i in range(X_train_csp.shape[0]):
+    X_train_tra[i] = stockwell(X_train_csp[i])
+
 X_test_csp  = csp.transform(test_data)
-print(X_train_csp.shape)
+data_shape = (X_test_csp.shape[0], n_components, fmax_samples+1, config.window_len)
+X_test_tra  = np.zeros(data_shape)
+for i in range(X_test_csp.shape[0]):
+    
+print(X_train_csp.shape, type(X_train_csp))
 f_data = h5py.File('./data/train_1d_csp.h5', "w")
 f_data.create_dataset("data",      data = X_train_csp  )
 f_data.create_dataset("label",     data = train_labels )

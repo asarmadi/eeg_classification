@@ -120,9 +120,9 @@ def get_outputs(net, inputs, config, transformer=None):
     elif config.model_type == 'mlp':
        outputs = net(inputs.float()).squeeze(1)
     else:
-       outputs = net(inputs.float())
-    if config.model_type == 'eegnet':
-       outputs = outputs.squeeze(1)
+       outputs = net(inputs.float().unsqueeze(1))
+    #if config.model_type == 'eegnet':
+    outputs = outputs.squeeze(1)
     return outputs
 
 def count_num_classes(dataloader, label):
