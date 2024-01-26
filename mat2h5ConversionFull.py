@@ -16,7 +16,7 @@ config.train_subjects = config.all_subjects
 all_trials   =  np.array(range(0,config.n_trial))
 test_trials  = all_trials
 
-if config.apply_valid_set:
+if config.apply_valid_set == 'all':
    valid_sub = np.random.choice(config.train_subjects,3,replace=False)
    config.valid_subjects = np.array(valid_sub)
    config.train_subjects = np.setdiff1d(config.train_subjects, config.valid_subjects)
@@ -63,7 +63,7 @@ def find_num_trials(data_type, des_sub):
             eeg = np.array(f[ref])
             if subject == des_sub:
                all_trials = np.arange(eeg.shape[0])
-               tr_trials_arr = np.array(np.random.choice(all_trials,eeg.shape[0]*5//10,replace=False))
+               tr_trials_arr = np.array(np.random.choice(all_trials,eeg.shape[0]*2//10,replace=False))
                train_trials[condition] = tr_trials_arr
                test_trials[condition]  = np.setdiff1d(all_trials, tr_trials_arr)
             trials_shape.append(eeg.shape[0])

@@ -2,6 +2,7 @@ import mne
 import h5py
 import argparse
 import numpy as np
+from utils.config import Config
 from utils.utils import stockwell
 from mne.decoding import CSP
 from sklearn.neural_network import MLPClassifier
@@ -11,6 +12,8 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 parser = argparse.ArgumentParser(description='EEG Classfication Network Testing')
 parser.add_argument('--subject', default='1',type=str, help='Subject')
 args = parser.parse_args()
+
+config = Config()
 
 def cal_acc(pred, target):
     total = len(pred)
@@ -38,8 +41,8 @@ with h5py.File(file_path, 'r',rdcc_nbytes=1024**2*4000,rdcc_nslots=1e7) as file:
 
 
 # Define and apply CSP
-n_components = 20
-csp = CSP(n_components=n_components, reg=None, log=None, norm_trace=False, transform_into='csp_space')
+print(config.csp_channels,train_data.shape)
+csp = CSP(n_components=config.csp_channels, reg=None, log=None, norm_trace=False, transform_into='csp_space')
 csp.fit(train_data, train_labels)
 X_train_csp = csp.transform(train_data)
 X_test_csp  = csp.transform(test_data)

@@ -41,8 +41,8 @@ if config.apply_valid_set == 'all':
    valid_acc, target_valid = test(net, validloader, config, "valid")
 
 #print("Train Performance:")
-#train_acc, _ = test(net, trainloader, config, "train")
-train_acc = 100.
+train_acc, _ = test(net, trainloader, config, "train")
+#train_acc = 100.
 
 header_name = 'Name,Acc,Target'
 if config.apply_valid_set == 'all':

@@ -243,6 +243,13 @@ def model_loader(config, kernel_size):
     elif config.model_type == 'mlp':
        from models.mlp import MLP
        return MLP(config)
+    elif config.model_type == 'atcnet':
+       from torcheeg.models import ATCNet
+       if config.transform == 'csp':
+          n_electrodes = config.csp_channels
+       else:
+          n_electrodes = config.n_channels
+       return ATCNet(num_classes=1, num_electrodes=n_electrodes, chunk_size=config.window_len, num_windows=5)
     else:
        return False
 

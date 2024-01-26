@@ -16,20 +16,19 @@ fi
 for TARGET in 1 2 3 4 6 7 8 9 12 13 14 15 16 17 19; do
 TEST_TARGET=${TARGET}
 TRANSFORM=1d
-#python -W ignore mat2h5ConversionFull.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
-python -W ignore mat2h5Conversion.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
+python -W ignore mat2h5ConversionFull.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
+#python -W ignore mat2h5Conversion.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
 #python -W ignore mat2h5ConversionSeparateFiles.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
 #done
-python csp_test.py --subject ${TEST_TARGET}
+#python csp_test.py --subject ${TEST_TARGET}
 #done
 #for TARGET in 1 2 3 4 6 7 8 9 12 13 14 15 16 17 19; do
 #TEST_TARGET=${TARGET}
 ##### Training AE ######
-NEPOCHS=7
-MODEL_TYPE=cnn
-TRANSFORM=csp
+NEPOCHS=21
+MODEL_TYPE=atcnet
+TRANSFORM=nothing
 python -W ignore main.py --lr ${LR} --batch_size ${BATCH_SIZE} --wd ${WD} --model_type ${MODEL_TYPE} --n_epochs ${NEPOCHS} --kernel_size ${KERNEL_SIZE} --transform ${TRANSFORM} --subject ${TEST_TARGET}
-#done
 
 #### Trainin MLP using AE
 #NEPOCHS=201

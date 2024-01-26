@@ -32,6 +32,9 @@ class Config:
           self.apply_gauss = False
           self.mapping_size = 3
 
+          # CSP Transform
+          self.csp_channels = 22
+
           # Each segement
           if self.downsample:
              self.n_timepoints = 500
@@ -60,7 +63,7 @@ class Config:
           # Bad Subjects: [0,5,10,11,18]
           self.train_subjects  = []
           self.all_subjects    = np.array([1,2,3,4,6,7,8,9,12,13,14,15,16,17,19])
-#          self.all_subjects    = np.array([1,2,3,4,6,7,8])
+#          self.all_subjects    = np.array([1,3,4,6,8,9,12,13,14,15,16,17])
           self.valid_subjects  = []
           self.test_subjects   = []
           if self.realVSFake:
