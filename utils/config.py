@@ -16,7 +16,7 @@ class Config:
           self.apply_valid_set = 'double'  # This defines to how many pieces we want to split the data ('all', 'double', 'single')
           self.realVSFake   = True
           self.data_path    = 'Img'    # Img vs Obs
-          self.downsample   = False
+          self.downsample   = True
           self.transform    = ""    # Specifies the transformation to be applied to the input (e.g., stockwell, stft)
 
           # Stockwell
@@ -37,8 +37,8 @@ class Config:
 
           # Each segement
           if self.downsample:
-             self.n_timepoints = 500
-             self.window_len   = 480
+             self.n_timepoints = 400
+             self.window_len   = 380
              self.window_inc   = 2
           else:
              self.n_timepoints = 2000
@@ -62,8 +62,9 @@ class Config:
     
           # Bad Subjects: [0,5,10,11,18]
           self.train_subjects  = []
-          self.all_subjects    = np.array([1,2,3,4,6,7,8,9,12,13,14,15,16,17,19])
-#          self.all_subjects    = np.array([1,3,4,6,8,9,12,13,14,15,16,17])
+#          self.all_subjects    = np.array([1,2,3,4,6,7,8,9,12,13,14,15,16,17,19])
+          self.all_subjects    = np.array([1,3,4,6,7,8,9,10,13,14,15,16,17,18])
+#          self.all_subjects    = np.array([1,9])
           self.valid_subjects  = []
           self.test_subjects   = []
           if self.realVSFake:

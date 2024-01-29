@@ -168,7 +168,7 @@ def preprocess_signal(config, X):
     if config.downsample:
        XD = []
        for i in range(X.shape[1]):
-           XD.append(signal.decimate(X[:,i], q=4))
+           XD.append(signal.decimate(X[:,i], q=5))
        X = np.array(XD).T
     if config.preprocess_normalize:
        mean, std  = np.mean(X, axis=0), np.std(X, axis=0)
