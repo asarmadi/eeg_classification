@@ -249,7 +249,7 @@ def model_loader(config, kernel_size):
           n_electrodes = config.csp_channels
        else:
           n_electrodes = config.n_channels
-       return ATCNet(num_classes=1, num_electrodes=n_electrodes, chunk_size=config.window_len, num_windows=5)
+       return ATCNet(num_classes=1, num_electrodes=n_electrodes, chunk_size=config.window_len, num_windows=9, tcn_depth=6, F1=64, D=4)
     else:
        return False
 
