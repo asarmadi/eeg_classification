@@ -1,6 +1,6 @@
 
 LR=0.0001
-WD=0.01
+WD=0.0
 BATCH_SIZE=32
 KERNEL_SIZE=5
 NEPOCHS=201
@@ -45,3 +45,5 @@ python -W ignore main.py --lr ${LR} --batch_size ${BATCH_SIZE} --wd ${WD} --mode
 python -W ignore test_performance.py --model_type ${MODEL_TYPE} --batch_size ${BATCH_SIZE} --kernel_size ${KERNEL_SIZE} --transform ${TRANSFORM} ${MAJ_VOTE_ARG}
 #python -W ignore voting.py --model_type ${MODEL_TYPE} --batch_size ${BATCH_SIZE} --kernel_size ${KERNEL_SIZE} --transform ${TRANSFORM} ${MAJ_VOTE_ARG} --target_test ${TEST_TARGET}
 done
+
+python plot_test_acc.py
