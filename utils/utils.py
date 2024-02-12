@@ -120,7 +120,10 @@ def get_outputs(net, inputs, config, transformer=None):
     elif config.model_type == 'mlp':
        outputs = net(inputs.float()).squeeze(1)
     else:
-       outputs = net(inputs.float().unsqueeze(1))
+       if config.transform == 'wpt':
+          outputs = net(inputs.float())
+       else:
+          outputs = net(inputs.float().unsqueeze(1))
     #if config.model_type == 'eegnet':
     outputs = outputs.squeeze(1)
     return outputs
@@ -245,11 +248,15 @@ def model_loader(config, kernel_size):
        return MLP(config)
     elif config.model_type == 'atcnet':
        from torcheeg.models import ATCNet
+       n_channels = 1
        if config.transform == 'csp':
           n_electrodes = config.csp_channels
+       elif config.transform == 'wpt':
+          n_electrodes = 20
+          n_channels = len(config.channels_list)
        else:
           n_electrodes = config.n_channels
-       return ATCNet(num_classes=1, num_electrodes=n_electrodes, chunk_size=config.window_len, num_windows=9)
+       return ATCNet(in_channels = n_channels, num_classes=1, num_electrodes=n_electrodes, chunk_size=config.window_len, num_windows=9)
     else:
        return False
 
@@ -259,6 +266,8 @@ def data_loader(batch_size, num_workers, transform, valid_check, config, add_tri
        name_str = '2dstft'
     elif transform == 'stockwell':
        name_str = '2dstfockwell'
+    elif transform == 'wpt':
+       name_str = '2dwpt'
     elif transform == 'csp':
        name_str = '1d_csp'
     else:
