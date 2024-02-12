@@ -25,7 +25,7 @@ class Config:
 
 
           # Majority Voting Properties
-          self.maj_vote    = False
+          self.maj_vote    = True
           self.threshold   = 0.5
 
           # Gaussian Transform
@@ -42,8 +42,8 @@ class Config:
              self.window_inc   = 2
           else:
              self.n_timepoints = 2000
-             self.window_len  = 2000
-             self.window_inc  = 1
+             self.window_len   = 2000
+             self.window_inc   = 1
           self.n_windows   = ((self.n_timepoints-self.window_len)// self.window_inc+1)
 
           # Stockwell Hyper-parameters
@@ -64,6 +64,7 @@ class Config:
           self.train_subjects  = []
 #          self.all_subjects    = np.array([1,2,3,4,6,7,8,9,12,13,14,15,16,17,19])
           self.all_subjects    = np.array([1,2,3,4,6,7,8,9,10,12,13,14,15,16,17,18])
+#          self.all_subjects    = np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19])
 #          self.all_subjects    = np.array([1,9])
           self.valid_subjects  = []
           self.test_subjects   = []

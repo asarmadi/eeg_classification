@@ -46,7 +46,8 @@ def find_num_samples(num_trials, sub_list):
     n_samples = 0
     for sub in sub_list:
         for cond in config.conditions:
-            n_samples += config.n_windows*num_trials[sub][cond]
+#            n_samples += config.n_windows*num_trials[sub][cond]
+            n_samples += config.n_windows*36
     return n_samples
 
 def find_num_trials(data_type):
@@ -59,6 +60,7 @@ def find_num_trials(data_type):
             ref = f["data"][condition][subject]
             eeg = np.array(f[ref])
             trials_shape[condition]=eeg.shape[0]
+#            trials_shape[condition]=17
         data_dict[subject]=trials_shape
     return data_dict
 
@@ -101,8 +103,13 @@ def generate_data(data_type):
             eeg = np.array(f[ref])
             print(f'{data_type} subject#: {subject}, condition: {condition}')
             sub_trials  = trials_list[subject][condition]
-            for i_trial in range(sub_trials):
-                eeg_scaled = eeg[i_trial,:,:]
+#            for i_trial in range(sub_trials):
+            for i_trial in range(36):
+                trial_idx = i_trial
+                if i_trial>(sub_trials-1):
+                   trial_idx = (i_trial)%sub_trials
+#                print(i_trial,trial_idx, sub_trials)
+                eeg_scaled = eeg[trial_idx,:,:]
                 eeg_scaled = preprocess_signal(config,eeg_scaled)
                 for j_windows in range(config.n_windows):
                     eeg_norm = eeg_scaled[j_windows*config.window_inc:j_windows*config.window_inc+config.window_len,:]
@@ -119,7 +126,7 @@ def generate_data(data_type):
                           f_data["label"][u]    = 1
                     else:
                        f_data["label"][u]    = condition - 2
-                    f_data["trial"][u]    = i_trial
+                    f_data["trial"][u]    = trial_idx
                     f_data["condition"][u]    = condition
                     f_data["subject"][u]  = subject
                     u += 1

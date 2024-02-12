@@ -92,14 +92,26 @@ def test_majority_voting(model, dataloader, config, name_str):
         print(f"Shapes: S:{len(subjects)}, T:{len(trials)}, L:{len(labels)}, C:{len(conditions)}")
         total = 0
         correct = 0
+        fn, fp = 0, 0
         with tqdm.tqdm(total=len(df)) as pbar:
            for sub in subjects:
                for tr in trials:
                    for condition in conditions:
                        rows = df[(df['subject'] == sub) & (df['trial'] == tr) & (df['condition'] == condition)]
                        correct_pred = rows[rows['label'] == rows['prediction']]
-                       if len(correct_pred) >= config.threshold*len(rows['label']):
-                          correct += 1
+                       if len(rows) != 0:
+                          actual    = np.mean(rows['label'])
+                          predicted = max(rows['prediction'],key=rows['prediction'].to_list().count)
+                          if actual == 1:
+                             if predicted == 1:
+                                correct +=1
+                             else:
+                                fn +=1
+                          else:
+                             if predicted == 1:
+                                fp +=1
+                             else:
+                                correct +=1
                        total += 1
 
     print('Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))

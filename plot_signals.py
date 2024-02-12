@@ -5,12 +5,12 @@ from utils.config import Config
 from utils.utils import scale, stockwell
 from scipy import signal
 
-raw_vs_preprocess = True
+raw_vs_preprocess = False
 stft = False
-find_min_max = False
+find_min_max = True
 
-Subject   = 2
-Condition = 0
+Subject   = 1
+Condition = 2
 Trial     = 2
 Channel   = 50
 j_windows = 0
@@ -60,7 +60,7 @@ if raw_vs_preprocess:
         ref = f["data"][Condition][Subject]
     raw_data = np.array(f[ref])
 
-    for channel in range(config.n_channels):
+    for channel in config.channels_list:
          pre_data_c = preprocessed_data[Trial,:,channel]
          raw_data_c = raw_data[Trial,:,channel]
          raw_data_c_s = scale(raw_data[Trial,:,:])
@@ -87,13 +87,13 @@ if raw_vs_preprocess:
          plt.close()
 
          fig = plt.figure(2)
-         axs = fig.subplots(3, 1)
-         axs[0].imshow(pre_data_c_stockwell, origin='lower', extent=extent, aspect="auto")
-         axs[0].set_ylabel("Pre-Processed")
-         axs[1].imshow(raw_data_c_stockwell, origin='lower', extent=extent, aspect="auto")
-         axs[1].set_ylabel("Raw")
-         axs[2].imshow(raw_data_c_s_stockwell, origin='lower', extent=extent, aspect="auto")
-         axs[2].set_ylabel("Scaled Raw")
+         axs = fig.subplots(1, 1)
+         axs.imshow(pre_data_c_stockwell, origin='lower', extent=extent, aspect="auto")
+         axs.set_ylabel("Pre-Processed")
+         #axs[1].imshow(raw_data_c_stockwell, origin='lower', extent=extent, aspect="auto")
+         #axs[1].set_ylabel("Raw")
+         #axs[2].imshow(raw_data_c_s_stockwell, origin='lower', extent=extent, aspect="auto")
+         #axs[2].set_ylabel("Scaled Raw")
          fig.suptitle(f"Subject {Subject}, Trial {Trial}, Condition {Condition}, Channel {channel}")
          plt.savefig('./Figs/1d_raw_vs_preprocessed/stockwell'+str(Subject)+'_Cond_'+str(Condition)+'_Trial_'+str(Trial)+'_Channel_'+str(channel)+'.png')
          #plt.show()
@@ -101,7 +101,7 @@ if raw_vs_preprocess:
 
 if find_min_max:
     global_min, global_max = 0, 0
-    path = "./data/SF_Img_data_nopre.mat"
+    path = "./data/SF_Img_MLdata.mat"
     with h5py.File(path, 'r') as file:
         f = h5py.File(path,'r')
         for condition in config.conditions:
