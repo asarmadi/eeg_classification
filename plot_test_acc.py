@@ -99,9 +99,9 @@ for i, dataset in enumerate(datasets):
         precision, recall, f1score, support = metrics.precision_recall_fscore_support(results['label'], results['prediction'], average='binary')
         print(precision, recall, f1score, support)
 
-        correct_pred = results[results['label'] == results['prediction']]
-        correct = len(correct_pred)
-        total   = len(results['label'])
+        correct_pred        = results[results['label'] == results['prediction']]
+        correct             = len(correct_pred)
+        total               = len(results['label'])
         acc[train_idx]      = correct/total*100.
         precis[train_idx]   = precision*100
         recalls[train_idx]  = recall*100
@@ -152,9 +152,9 @@ for i, dataset in enumerate(datasets):
                          tn +=1
                    total += 1
         correct = tp + tn
-        macc[sub]     = 100.*correct/total
-        mprecis[sub]  = 100.*(tp/(tp+fp))
-        mrecalls[sub] = 100.*(tp/(tp+fn))
+        macc[sub]           = 100.*correct/total
+        mprecis[sub]        = 100.*(tp/(tp+fp))
+        mrecalls[sub]       = 100.*(tp/(tp+fn))
         test_acc_major[sub] = 100.*correct/total
 
 plt.plot([str(key_val) for key_val in test_acc_major.keys()],  list(test_acc_major.values()),  '-b.', label='Test (Major Voting)')
@@ -169,7 +169,7 @@ plt.savefig('./Figs/Accs.png')
 plt.close()
 
 plt.figure(11)
-data_y = np.array([i for i in acc.values()])
+data_y = np.array([i   for i in acc.values()])
 plt.plot([str(key_val) for key_val in acc.keys()], list(acc.values()),          '-g.', label='Accuracy')
 plt.plot([str(key_val) for key_val in precis.keys()], list(precis.values()),    '-r.', label='Precision')
 plt.plot([str(key_val) for key_val in recalls.keys()], list(recalls.values()),  '-b.', label='Recall')
