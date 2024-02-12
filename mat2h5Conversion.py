@@ -107,7 +107,7 @@ def generate_data(data_type):
             for i_trial in range(36):
                 trial_idx = i_trial
                 if i_trial>(sub_trials-1):
-                   trial_idx = (36 - i_trial)
+                   trial_idx = (i_trial)%sub_trials
 #                print(i_trial,trial_idx, sub_trials)
                 eeg_scaled = eeg[trial_idx,:,:]
                 eeg_scaled = preprocess_signal(config,eeg_scaled)
