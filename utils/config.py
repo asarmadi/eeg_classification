@@ -25,7 +25,7 @@ class Config:
 
 
           # Majority Voting Properties
-          self.maj_vote    = True
+          self.maj_vote    = False
           self.threshold   = 0.5
 
           # Gaussian Transform
@@ -62,8 +62,8 @@ class Config:
     
           # Bad Subjects: [0,5,10,11,18]
           self.train_subjects  = []
-#          self.all_subjects    = np.array([1,2,3,4,6,7,8,9,12,13,14,15,16,17,19])
-          self.all_subjects    = np.array([1,2,3,4,6,7,8,9,10,12,13,14,15,16,17,18])
+          self.all_subjects    = np.array([1,4,7,14,16,17,18])
+#          self.all_subjects    = np.array([1,2,3,4,6,7,8,9,10,12,13,14,15,16,17,18])
 #          self.all_subjects    = np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19])
 #          self.all_subjects    = np.array([1,9])
           self.valid_subjects  = []
