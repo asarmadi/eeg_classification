@@ -38,6 +38,7 @@ def test(model, dataloader, config, name_str):
        gauss_obj = GaussianFourierFeatureTransform(1, config.mapping_size, 10)
     with torch.no_grad():
         for batch_idx, (inputs, targets, subjects) in enumerate(dataloader):
+            print(subjects)
             inputs, targets = inputs.to(config.device), targets.to(config.device)
             outputs = get_outputs(model, inputs, config, transformer=trans_net)
             #_, predicted = outputs.max(1)
@@ -47,7 +48,7 @@ def test(model, dataloader, config, name_str):
             correct += predicted.eq(targets).sum().item()
             progress_bar(batch_idx, len(dataloader), 'Acc: %.3f%% (%d/%d)'% (100.*correct/total, correct, total))
 
-        print('Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
+        print('Acc: {0:.3f} ({1}/{2}), sub: {3}'.format(100.*correct/total, correct, total,subjects.unique().numpy()))
         return 100.*correct/total, subjects.unique().numpy()
 
 def test_majority_voting(model, dataloader, config, name_str):
@@ -90,31 +91,30 @@ def test_majority_voting(model, dataloader, config, name_str):
         conditions = df['condition'].unique()
         print(subjects)
         print(f"Shapes: S:{len(subjects)}, T:{len(trials)}, L:{len(labels)}, C:{len(conditions)}")
-        total = 0
-        correct = 0
-        fn, fp = 0, 0
-        with tqdm.tqdm(total=len(df)) as pbar:
-           for sub in subjects:
-               for tr in trials:
-                   for condition in conditions:
-                       rows = df[(df['subject'] == sub) & (df['trial'] == tr) & (df['condition'] == condition)]
-                       correct_pred = rows[rows['label'] == rows['prediction']]
-                       if len(rows) != 0:
-                          actual    = np.mean(rows['label'])
-                          predicted = max(rows['prediction'],key=rows['prediction'].to_list().count)
-                          if actual == 1:
-                             if predicted == 1:
-                                correct +=1
-                             else:
-                                fn +=1
-                          else:
-                             if predicted == 1:
-                                fp +=1
-                             else:
-                                correct +=1
-                       total += 1
+    total = 0
+    correct = 0
+    fn, fp = 0, 0
+    with tqdm.tqdm(total=len(df)) as pbar:
+       for sub in subjects:
+           for tr in trials:
+               for condition in conditions:
+                   rows = df[(df['subject'] == sub) & (df['trial'] == tr) & (df['condition'] == condition)]
+                   if len(rows) != 0:
+                      actual    = np.mean(rows['label'])
+                      predicted = max(rows['prediction'],key=rows['prediction'].to_list().count)
+                      if actual == 1:
+                         if predicted == 1:
+                            correct +=1
+                         else:
+                            fn +=1
+                      else:
+                         if predicted == 1:
+                            fp +=1
+                         else:
+                            correct +=1
+                      total += 1
 
-    print('Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
+    print('Major Acc: {0:.3f} ({1}/{2})'.format(100.*correct/total, correct, total))
     return 100.*correct/total, subjects
 
 
