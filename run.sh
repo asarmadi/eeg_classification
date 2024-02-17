@@ -1,7 +1,6 @@
-
-LR=0.0001
+LR=0.0005
 WD=0.0
-BATCH_SIZE=32
+BATCH_SIZE=16
 KERNEL_SIZE=5
 NEPOCHS=201
 MODEL_TYPE=mlp
@@ -14,8 +13,8 @@ if [ $MAJVOTE -eq 1 ]; then
   MAJ_VOTE_ARG="--maj_vote"
 fi
 
-for TARGET in 1 2 3 4 6 7 8 9 10 12 13 14 15 16 17 18; do
-#for TARGET in 7; do
+#for TARGET in 1 2 3 4 6 7 8 9 10 12 13 14 15 16 17 18; do
+for TARGET in 1 4 7 14 16 17 18; do
 TEST_TARGET=${TARGET}
 TRANSFORM=1d
 #python -W ignore mat2h5ConversionFull.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
