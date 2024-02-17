@@ -40,7 +40,7 @@ if config.apply_valid_set == 'all':
    print("Validation Performance:")
    valid_acc, target_valid = test(net, validloader, config, "valid")
 
-#print("Train Performance:")
+print("Train Performance:")
 train_acc, _ = test(net, trainloader, config, "train")
 #train_acc = 100.
 
