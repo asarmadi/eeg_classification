@@ -44,8 +44,8 @@ net = model_loader(config,args.kernel_size)
 net = net.to(args.device)
 for m in net.modules():
     if type(m)==nn.Linear:
-       m.weight.data.normal_(0.0,2/np.sqrt(m.in_features))
-#       torch.nn.init.eye_(m.weight)
+#       m.weight.data.normal_(0.0,2/np.sqrt(m.in_features))
+       torch.nn.init.eye_(m.weight)
        m.bias.data.fill_(0.0)
 
 #net.load_state_dict(torch.load('./checkpoint/Net_'+config.model_type+'.pth'))
