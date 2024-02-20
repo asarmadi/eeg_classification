@@ -37,7 +37,7 @@ name_str = ''
 if config.apply_valid_set == 'single':
    name_str = '_'+args.subject
 
-trainloader, validloader,testloader = data_loader(args.batch_size, args.num_workers, args.transform, config.apply_valid_set,config=config)
+trainloader, validloader,testloader = data_loader(args.batch_size, args.num_workers, args.transform, config=config)
 
 net = model_loader(config,args.kernel_size)
 #net= nn.DataParallel(net)
@@ -47,6 +47,11 @@ for m in net.modules():
 #       m.weight.data.normal_(0.0,2/np.sqrt(m.in_features))
        torch.nn.init.eye_(m.weight)
        m.bias.data.fill_(0.0)
+
+for name, param in net.named_parameters():
+    if 'dense' in name:
+       param.requires_grad = False
+
 
 #net.load_state_dict(torch.load('./checkpoint/Net_'+config.model_type+'.pth'))
 net.eval()
@@ -74,12 +79,12 @@ else:
 #   criterion = nn.NLLLoss()
 scheduler = MultiStepLR(optimizer, milestones=[200,300], gamma=0.1)
 
-def train():
+def train(dataLoader):
     net.train()
     train_loss = 0
     correct = 0
     total = 0
-    for batch_idx, (inputs, targets, _) in enumerate(trainloader):
+    for batch_idx, (inputs, targets, _) in enumerate(dataLoader):
         inputs, targets = inputs.to(args.device), targets.to(args.device)
         optimizer.zero_grad()
         outputs = get_outputs(net, inputs,config, transformer=trans_net)
@@ -97,17 +102,24 @@ def train():
  #          else:
   #            _, predicted = outputs.max(1)
            correct += predicted.eq(targets).sum().item()
-           progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+           progress_bar(batch_idx, len(dataLoader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                   % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
         else:
-           progress_bar(batch_idx, len(trainloader), 'Loss: %.3f' % (train_loss/(batch_idx+1)))
+           progress_bar(batch_idx, len(dataLoader), 'Loss: %.3f' % (train_loss/(batch_idx+1)))
 
     print(f'Total: {total}')
     return (correct/total)
 
 for epoch in range(1,args.n_epochs):
     print('\nEpoch: {}/{}'.format(epoch,args.n_epochs))
-    clean_acc = train()
+    if epoch < args.n_epochs//2:
+       clean_acc = train(trainloader)
+    elif epoch == args.n_epochs//2:
+         for name, param in net.named_parameters():
+             if 'dense' in name:
+                 param.requires_grad = False
+    elif config.apply_valid_set == 'fineTune':
+       clean_acc = train(validloader)
 
     if config.apply_valid_set == 'all':
        clean_acc,_ = test(net, validloader, config, "valid")
