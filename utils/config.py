@@ -13,7 +13,7 @@ class Config:
           self.preprocess_normalize = False
           self.preprocess_scale = False
           self.device       = 'cuda:0'
-          self.apply_valid_set = 'double'  # This defines to how many pieces we want to split the data ('all', 'double', 'single')
+          self.apply_valid_set = 'fineTune'  # This defines to how many pieces we want to split the data ('all', 'double', 'single', 'fineTune')
           self.realVSFake   = True
           self.data_path    = 'Img'    # Img vs Obs
           self.downsample   = False
@@ -62,8 +62,8 @@ class Config:
     
           # Bad Subjects: [0,5,10,11,18]
           self.train_subjects  = []
-          self.all_subjects    = np.array([1,4,7,14,16,17,18])
-#          self.all_subjects    = np.array([1,2,3,4,6,7,8,9,10,12,13,14,15,16,17,18])
+#          self.all_subjects    = np.array([1,4,7,14,16,17,18])
+          self.all_subjects    = np.array([1,2,3,4,6,7,8,9,10,12,13,14,15,16,17,18])
 #          self.all_subjects    = np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19])
 #          self.all_subjects    = np.array([1,9])
           self.valid_subjects  = []
