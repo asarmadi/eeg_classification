@@ -17,8 +17,7 @@ args = parser.parse_args()
 best_acc = 0
 
 config = Config(args.model_type)
-trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers, args.transform,\
-                                                   config.apply_valid_set,add_trial=args.maj_vote,config=config)
+trainloader, validloader, testloader = data_loader(args.batch_size, args.num_workers, args.transform,add_trial=args.maj_vote,config=config)
 config.device=args.device
 config.maj_vote = args.maj_vote
 config.transform = args.transform
