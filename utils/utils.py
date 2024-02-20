@@ -272,7 +272,7 @@ def model_loader(config, kernel_size):
     else:
        return False
 
-def data_loader(batch_size, num_workers, transform, valid_check, config, add_trial=False):
+def data_loader(batch_size, num_workers, transform, config, add_trial=False):
     from utils.hdf5_dataset import HDF5Dataset
     if transform == 'stf':
        name_str = '2dstft'
@@ -294,16 +294,19 @@ def data_loader(batch_size, num_workers, transform, valid_check, config, add_tri
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True,  num_workers=num_workers, pin_memory=True)
     if config.apply_valid_set == 'single':
        return trainloader, None, None
-    if valid_check == 'all':
+    if config.apply_valid_set == 'all':
        validset = HDF5Dataset('./data/valid_'+name_str+'.h5', config, add_trial=add_trial)
     testset  = HDF5Dataset('./data/test_'+name_str+'.h5', config, add_trial=add_trial)
 
     testloader  = torch.utils.data.DataLoader(testset,  batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
-    if valid_check == 'all':
+    if config.apply_valid_set == 'all':
+       validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)
+       return trainloader, validloader, testloader
+    if config.apply_valid_set == 'fineTune':
+       validset = HDF5Dataset('./data/tune_'+name_str+'.h5', config, add_trial=add_trial)
        validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)
        return trainloader, validloader, testloader
     return trainloader, None, testloader
-
 
 def progress_bar(current, total, msg=None):
     global last_time, begin_time
