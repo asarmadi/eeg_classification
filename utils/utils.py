@@ -84,12 +84,11 @@ def test_majority_voting(model, dataloader, config, name_str):
 
         df = pd.DataFrame(results.cpu().numpy(),columns=columns)
         df.to_csv('./csv_out/'+name_str+'_'+str(subjects.unique().numpy()[0])+'.csv', encoding='utf-8', index=False)
-
+        print(f"Subjects: {subjects}")
         subjects = df['subject'].unique()
         trials = df['trial'].unique()
         labels = df['label'].unique()
         conditions = df['condition'].unique()
-        print(subjects)
         print(f"Shapes: S:{len(subjects)}, T:{len(trials)}, L:{len(labels)}, C:{len(conditions)}")
     total = 0
     correct = 0
