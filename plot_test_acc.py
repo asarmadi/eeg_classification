@@ -1,4 +1,5 @@
 import os
+import argparse
 import matplotlib
 import matplotlib.pyplot as plt
 from utils.config import Config
@@ -8,6 +9,9 @@ import numpy as np
 from sklearn import metrics
 
 plot_csp = False
+parser = argparse.ArgumentParser(description='EEG Classification')
+parser.add_argument('--percent', default='',type=str, help='Target Subject')
+args = parser.parse_args()
 
 config = Config()
 #config.all_subjects    = np.array([1,2,3,4,6,7,8])
@@ -178,7 +182,7 @@ plt.xlabel("Subject in Test set")
 plt.legend()
 plt.title(f"Accuracy Mean: {np.mean(data_y):.2f} STD: {np.std(data_y):.2f}")
 plt.tight_layout()
-plt.savefig('./Figs/multi_acc.png')
+plt.savefig('./Figs/multi_acc_'+args.percent+'.png')
 plt.close()
 
 plt.figure(12)
@@ -190,7 +194,7 @@ plt.xlabel("Subject in Test set")
 plt.legend()
 plt.title(f"MV Accuracy Mean: {np.mean(data_y):.2f} STD: {np.std(data_y):.2f}")
 plt.tight_layout()
-plt.savefig('./Figs/multi_acc_major.png')
+plt.savefig('./Figs/multi_acc_major_'+args.percent+'.png')
 plt.close()
 
 import numpy as np
