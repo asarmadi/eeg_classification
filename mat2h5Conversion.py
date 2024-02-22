@@ -44,19 +44,22 @@ def find_subjects_list(data_type):
     elif data_type == 'valid':
         subjects_list = config.valid_subjects
     elif data_type == 'tune':
-        subjects_list = config.test_subjects
+        subjects_list = config.all_subjects
+#        subjects_list = config.test_subjects
     return subjects_list
 
-def find_num_samples(num_trials, sub_list, data_type):
+def find_num_samples(num_trials, sub_list, data_type, des_sub):
     n_samples = 0
     for sub in sub_list:
         for cond in config.conditions:
             n_trials = num_trials[sub][cond]
             if config.apply_valid_set == 'fineTune':
                if data_type == 'tune':
-                  n_trials = n_trials*percent//10
+                  if sub == int(des_sub):
+                     n_trials = n_trials*percent//10
                elif data_type == 'test':
-                  n_trials  = n_trials*(10-percent)//10
+                  if sub == int(des_sub):
+                     n_trials  = n_trials*(10-percent)//10
             n_samples += config.n_windows*n_trials
     return n_samples
 
@@ -79,7 +82,7 @@ def generate_data(data_type, tune_trials):
     subjects_list = find_subjects_list(data_type)
     trials_list = find_num_trials(data_type)
 
-    n_samples = find_num_samples(trials_list,subjects_list, data_type)
+    n_samples = find_num_samples(trials_list,subjects_list, data_type, args.target_test)
     print(n_samples)
     if args.apply_transform == 'stft':
         data_shape = (n_samples, config.n_channels, config.freq_cut, config.nTimeBins)
@@ -116,11 +119,13 @@ def generate_data(data_type, tune_trials):
             sub_trials  = np.arange(trials_list[subject][condition])
             if config.apply_valid_set == 'fineTune':
                if data_type == 'tune':
-                  sub_trials = np.array(np.random.choice(sub_trials,trials_list[subject][condition]*percent//10,replace=False))
+                  if subject == int(args.target_test):
+                     sub_trials = np.array(np.random.choice(sub_trials,trials_list[subject][condition]*percent//10,replace=False))
                   trials_dict[condition] = sub_trials
                elif data_type == 'test':
-                  sub_trials = np.setdiff1d(sub_trials, tune_trials[subject][condition])
-                  sub_trials = np.array(np.random.choice(sub_trials,trials_list[subject][condition]*(10-percent)//10,replace=False))
+                  if subject == int(args.target_test):
+                     sub_trials = np.setdiff1d(sub_trials, tune_trials[subject][condition])
+                     sub_trials = np.array(np.random.choice(sub_trials,trials_list[subject][condition]*(10-percent)//10,replace=False))
             for i_trial in sub_trials:
 #                print(i_trial,trial_idx, sub_trials)
                 eeg_scaled = eeg[i_trial,:,:]
