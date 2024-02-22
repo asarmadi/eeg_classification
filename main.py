@@ -48,10 +48,6 @@ for m in net.modules():
        torch.nn.init.eye_(m.weight)
        m.bias.data.fill_(0.0)
 
-for name, param in net.named_parameters():
-    if 'dense' in name:
-       param.requires_grad = False
-
 
 #net.load_state_dict(torch.load('./checkpoint/Net_'+config.model_type+'.pth'))
 net.eval()
@@ -112,14 +108,14 @@ def train(dataLoader):
 
 for epoch in range(1,args.n_epochs):
     print('\nEpoch: {}/{}'.format(epoch,args.n_epochs))
-    if epoch < args.n_epochs//2:
+    if epoch < args.n_epochs:
        clean_acc = train(trainloader)
-    elif epoch == args.n_epochs//2:
-         for name, param in net.named_parameters():
-             if 'dense' in name:
-                 param.requires_grad = False
-    elif config.apply_valid_set == 'fineTune':
-       clean_acc = train(validloader)
+#    elif epoch == args.n_epochs//2:
+ #        for name, param in net.named_parameters():
+  #           if 'dense' not in name:
+   #              param.requires_grad = False
+    #elif config.apply_valid_set == 'fineTune':
+     #  clean_acc = train(validloader)
 
     if config.apply_valid_set == 'all':
        clean_acc,_ = test(net, validloader, config, "valid")
