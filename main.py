@@ -73,7 +73,7 @@ elif 'mlp' in config.model_type:
 else:
    criterion = torch.nn.BCEWithLogitsLoss()
 #   criterion = nn.NLLLoss()
-scheduler = MultiStepLR(optimizer, milestones=[200,300], gamma=0.1)
+scheduler = MultiStepLR(optimizer, milestones=[args.n_epochs-5,args.n_epochs], gamma=0.1)
 
 def train(dataLoader):
     net.train()
@@ -108,14 +108,7 @@ def train(dataLoader):
 
 for epoch in range(1,args.n_epochs):
     print('\nEpoch: {}/{}'.format(epoch,args.n_epochs))
-    if epoch < args.n_epochs:
-       clean_acc = train(trainloader)
-#    elif epoch == args.n_epochs//2:
- #        for name, param in net.named_parameters():
-  #           if 'dense' not in name:
-   #              param.requires_grad = False
-    #elif config.apply_valid_set == 'fineTune':
-     #  clean_acc = train(validloader)
+    clean_acc = train(trainloader)
 
     if config.apply_valid_set == 'all':
        clean_acc,_ = test(net, validloader, config, "valid")

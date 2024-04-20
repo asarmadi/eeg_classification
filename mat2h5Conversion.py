@@ -7,6 +7,7 @@ import argparse
 parser = argparse.ArgumentParser(description='EEG h5 generator')
 parser.add_argument('--target_test', default='0',type=str, help='Subject for test')
 parser.add_argument('--apply_transform', default='', type=str, help='Apply transformatio (e.g., stft, stockwell)')
+parser.add_argument('--percent', default='0',type=str, help='Percentage of sharing')
 args = parser.parse_args()
 
 config = Config()
@@ -32,7 +33,7 @@ elif config.apply_valid_set == 'fineTune':
 print(f'Test Subjects:  {config.test_subjects}')
 print(f'Train Subjects: {config.train_subjects}')
 
-percent = 2
+percent = int(args.percent)
 path = config.file_path + "SF_"+config.data_path+"_MLdata.mat"
 #path = config.file_path + "SF_"+config.data_path+"_data_nopre.mat"
 
@@ -44,8 +45,8 @@ def find_subjects_list(data_type):
     elif data_type == 'valid':
         subjects_list = config.valid_subjects
     elif data_type == 'tune':
-        subjects_list = config.all_subjects
-#        subjects_list = config.test_subjects
+#        subjects_list = config.all_subjects
+        subjects_list = config.test_subjects
     return subjects_list
 
 def find_num_samples(num_trials, sub_list, data_type, des_sub):
@@ -144,7 +145,10 @@ def generate_data(data_type, tune_trials):
                        else:
                           f_data["label"][u]    = 1
                     else:
-                       f_data["label"][u]    = condition - 2
+                       if condition == 0 or condition == 2:
+                          f_data["label"][u]    = 0  # Flex
+                       else:
+                          f_data["label"][u]    = 1  # Extend
                     f_data["trial"][u]    = i_trial
                     f_data["condition"][u]    = condition
                     f_data["subject"][u]  = subject

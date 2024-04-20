@@ -5,7 +5,7 @@ from utils.config import Config
 from utils.utils import *
 
 parser = argparse.ArgumentParser(description='EEG Classfication Network Testing')
-parser.add_argument('--device', default='cuda:0',type=str, help='GPU device')
+parser.add_argument('--device', default='cuda:1',type=str, help='GPU device')
 parser.add_argument('--model_type', default='cnn',type=str, help='cnn, caspnet')
 parser.add_argument('--batch_size', default=32, type=int, help='Test Batch Size')
 parser.add_argument('--kernel_size', default=32, type=int, help='Model Kernel Size')

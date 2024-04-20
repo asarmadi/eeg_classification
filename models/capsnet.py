@@ -58,12 +58,13 @@ class PrimaryCaps(nn.Module):
 
 
 class DigitCaps(nn.Module):
-    def __init__(self, num_capsules=10, num_routes=32 * 6 * 6, in_channels=8, out_channels=16):
+    def __init__(self, num_capsules=10, num_routes=32 * 6 * 6, in_channels=8, out_channels=16, device='cuda:0'):
         super(DigitCaps, self).__init__()
 
         self.in_channels  = in_channels
         self.num_routes   = num_routes
         self.num_capsules = num_capsules
+        self.device       = device
         self.logsoft = nn.Softmax(dim=1)  # I changed it from LogSoftmax
 
         self.W = nn.Parameter(torch.randn(1, num_routes, num_capsules, out_channels, in_channels))
@@ -77,7 +78,7 @@ class DigitCaps(nn.Module):
 
         b_ij = Variable(torch.zeros(1, self.num_routes, self.num_capsules, 1))
         if USE_CUDA:
-            b_ij = b_ij.cuda()
+            b_ij = b_ij.to(self.device)
 
         num_iterations = 3
         for iteration in range(num_iterations):
@@ -90,7 +91,7 @@ class DigitCaps(nn.Module):
             if iteration < num_iterations - 1:
                 a_ij = torch.matmul(u_hat.transpose(3, 4), torch.cat([v_j] * self.num_routes, dim=1))
                 b_ij = b_ij + a_ij.squeeze(4).mean(dim=0, keepdim=True)
-        v_j = self.logsoft(v_j)
+#        v_j = self.logsoft(v_j)
         return v_j
 
     def squash(self, input_tensor):
@@ -100,11 +101,12 @@ class DigitCaps(nn.Module):
 
 
 class Decoder(nn.Module):
-    def __init__(self, input_width=28, input_height=28, input_channel=1):
+    def __init__(self, input_width=28, input_height=28, input_channel=1, device='cuda:0'):
         super(Decoder, self).__init__()
         self.input_width = input_width
         self.input_height = input_height
         self.input_channel = input_channel
+        self.device = device
         self.reconstraction_layers = nn.Sequential(
             nn.Linear(2, 512),
             nn.ReLU(inplace=True),
@@ -121,7 +123,7 @@ class Decoder(nn.Module):
         _, max_length_indices = classes.max(dim=1)
         masked = Variable(torch.sparse.torch.eye(2))
         if USE_CUDA:
-            masked = masked.cuda()
+            masked = masked.to(self.device)
         masked = masked.index_select(dim=0, index=Variable(max_length_indices.squeeze(1).data))
         t = (x * masked[:, :, None, None]).view(x.size(0), -1)
         reconstructions = self.reconstraction_layers(t)
@@ -137,7 +139,7 @@ class CapsNet(nn.Module):
             self.primary_capsules = PrimaryCaps(config.pc_num_capsules, config.pc_in_channels, config.pc_out_channels,
                                                 config.pc_kernel_size, config.pc_num_routes)
             self.digit_capsules = DigitCaps(config.dc_num_capsules, config.dc_num_routes, config.dc_in_channels,
-                                            config.dc_out_channels)
+                                            config.dc_out_channels, device=config.device)
  #           self.decoder = Decoder(config.input_width, config.input_height, config.cnn_in_channels)
         else:
             self.conv_layer = ConvLayer()
@@ -148,7 +150,7 @@ class CapsNet(nn.Module):
         self.mse_loss = nn.MSELoss()
 
     def forward(self, data):
-#        print(f'data: {data.shape}')
+        data = data.unsqueeze(1)
         x1 = self.conv_layer(data)
  #       print(f'X1: {x1.shape}')
         x2 = self.primary_capsules(x1)

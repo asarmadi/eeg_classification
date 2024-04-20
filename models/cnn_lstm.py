@@ -31,6 +31,7 @@ class LSTMConv(nn.Module):
 #        self.relu    = nn.ReLU()
 
     def forward(self, x):
+        x = x.squeeze(1)
         x = x.permute(0,2,1)
 #        print(x.shape)
  #       input('enter')
@@ -47,6 +48,6 @@ class LSTMConv(nn.Module):
         out = self.conv_layer3(out)
         out = out.reshape(-1, out.shape[1]*out.shape[2])
  #       out = self.dro(self.relu(self.bn1(self.fc1(out))))
-        out = self.sigmoid(self.fc2(out))
+        out = self.fc2(out)
         return out
 

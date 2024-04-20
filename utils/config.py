@@ -12,16 +12,16 @@ class Config:
 
           self.preprocess_normalize = False
           self.preprocess_scale = False
-          self.device       = 'cuda:0'
+          self.device       = 'cuda:1'
           self.apply_valid_set = 'double'  # This defines to how many pieces we want to split the data ('all', 'double', 'single', 'fineTune')
-          self.realVSFake   = True
+          self.realVSFake   = False
           self.data_path    = 'Img'    # Img vs Obs
           self.downsample   = False
           self.transform    = ""    # Specifies the transformation to be applied to the input (e.g., stockwell, stft)
 
           # Stockwell
-          self.channels_list = [15,17,18, 20,43,44,46,48,49]
-#          self.channels_list = [i for i in range(0,self.n_channels)]
+#          self.channels_list = [15,17,18, 20,43,44,46,48,49]
+          self.channels_list = [i for i in range(0,self.n_channels)]
 
 
           # Majority Voting Properties
@@ -75,7 +75,8 @@ class Config:
 
           if model == 'capsnet':
             # CNN (cnn)
-            self.cnn_in_channels  = len(self.channels_list)
+#            self.cnn_in_channels  = len(self.channels_list)
+            self.cnn_in_channels  = 1
             if self.apply_gauss:
                self.cnn_in_channels  = 2*self.mapping_size
             self.cnn_out_channels = 32
@@ -91,7 +92,7 @@ class Config:
             # Digit Capsule (dc)
             self.dc_num_capsules = 1
             self.dc_num_routes   = self.pc_num_routes
-            self.dc_in_channels  = 48
+            self.dc_in_channels  = 49
             self.dc_out_channels = 1
 
             # Decoder
@@ -100,4 +101,4 @@ class Config:
 
           if 'lstm' in model or 'combined' in model:
             self.hidden_dim = 64
-            self.layer_dim  = 2
+            self.layer_dim  = 4

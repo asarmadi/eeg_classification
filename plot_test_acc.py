@@ -123,6 +123,11 @@ np.savetxt(filePath+"stats.csv", data_r, delimiter=",", header=header_string, co
 
 print(f"Test Acc: {acc}")
 
+import numpy as np
+print(acc)
+print(np.mean(list(acc.values())), np.std(list(acc.values())))
+exit(0)
+
 
 macc     = {}
 mprecis  = {}
@@ -200,6 +205,9 @@ plt.close()
 import numpy as np
 print(acc)
 print(np.mean(list(acc.values())), np.std(list(acc.values())))
+f = open('./out/acc_dict_'+args.percent+'.txt','w')
+f.write(str(acc))
+f.close()
 
 print(f"Test Acc Major: {test_acc_major}")
 print(np.mean(list(test_acc_major.values())), np.std(list(test_acc_major.values())))

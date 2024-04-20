@@ -126,10 +126,14 @@ def get_outputs(net, inputs, config, transformer=None):
        inputs = transformer.get_feature(inputs)
     if config.model_type == 'capsnet':
        outputs, reconstructions, masked = net(inputs)
-       outputs = outputs.reshape(-1,)
+       outputs = outputs.reshape(-1,1)
 #       outputs = nn.functional.logsoftmax(outputs,dim=1)
     elif config.model_type == 'mlp':
        outputs = net(inputs.float()).squeeze(1)
+    elif config.model_type == 'shalloweeg':
+       outputs = net(inputs.float())
+    elif config.model_type == 'lstm':
+       outputs = net(inputs.float())
     else:
        if config.transform == 'wpt':
           outputs = net(inputs.float())
@@ -303,7 +307,7 @@ def data_loader(batch_size, num_workers, transform, config, add_trial=False):
        return trainloader, validloader, testloader
     if config.apply_valid_set == 'fineTune':
        validset = HDF5Dataset('./data/tune_'+name_str+'.h5', config, add_trial=add_trial)
-       validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=False)
+       validloader = torch.utils.data.DataLoader(validset, batch_size=4, shuffle=True, num_workers=num_workers, pin_memory=False)
        return trainloader, validloader, testloader
     return trainloader, None, testloader
 

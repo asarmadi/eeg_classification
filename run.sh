@@ -1,5 +1,5 @@
 LR=0.00005
-WD=0.0
+WD=0.01
 BATCH_SIZE=16
 KERNEL_SIZE=5
 NEPOCHS=201
@@ -7,20 +7,23 @@ MODEL_TYPE=mlp
 TRANSFORM=aelinear
 MAJVOTE=1
 
+rm out/*
+rm csv_out/*
+rm Figs/*
 
 MAJ_VOTE_ARG=""
 if [ $MAJVOTE -eq 1 ]; then
   MAJ_VOTE_ARG="--maj_vote"
 fi
 
-for PERCENT in 1 2 3 4 5 6;do
+for PERCENT in 0;do
 T_PERCENT=${PERCENT}
 for TARGET in 1 2 3 4 6 7 8 9 10 12 13 14 15 16 17 18; do
 #for TARGET in 1 4; do
 TEST_TARGET=${TARGET}
 TRANSFORM=1d
-python -W ignore mat2h5ConversionFull.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM} --percent ${T_PERCENT}
-#python -W ignore mat2h5Conversion.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
+#python -W ignore mat2h5ConversionFull.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM} --percent ${T_PERCENT}
+python -W ignore mat2h5Conversion.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM} --percent ${T_PERCENT}
 #python -W ignore mat2h5ConversionSeparateFiles.py --target_test ${TEST_TARGET} --apply_transform ${TRANSFORM}
 #done
 #python csp_test.py --subject ${TEST_TARGET}
@@ -28,7 +31,7 @@ python -W ignore mat2h5ConversionFull.py --target_test ${TEST_TARGET} --apply_tr
 #for TARGET in 1 2 3 4 6 7 8 9 12 13 14 15 16 17 19; do
 #TEST_TARGET=${TARGET}
 ##### Training AE ######
-NEPOCHS=21
+NEPOCHS=31
 MODEL_TYPE=atcnet
 TRANSFORM=nothing
 python -W ignore main.py --lr ${LR} --batch_size ${BATCH_SIZE} --wd ${WD} --model_type ${MODEL_TYPE} --n_epochs ${NEPOCHS} --kernel_size ${KERNEL_SIZE} --transform ${TRANSFORM} --subject ${TEST_TARGET}
